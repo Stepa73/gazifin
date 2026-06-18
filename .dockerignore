@@ -1,0 +1,15 @@
+/vendor
+/node_modules
+.git
+.idea
+.env
+.env.*
+!.env.example
+docker/.env.build
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+database/database.sqlite
+npm-debug.log
