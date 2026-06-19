@@ -41,4 +41,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'gotenberg' => [
+        'url' => env('GOTENBERG_URL'),
+        'asset_base_url' => env('PDF_ASSET_BASE_URL', env('APP_URL')),
+    ],
+
 ];

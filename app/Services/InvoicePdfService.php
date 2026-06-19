@@ -5,21 +5,22 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Support\CzechBankAccount;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class InvoicePdfService
 {
     public function __construct(
         private PaymentQrService $paymentQrService,
+        private GotenbergService $gotenbergService,
     ) {}
 
     public function generate(Invoice $invoice): string
     {
-        $pdf = Pdf::loadView('invoices.pdf', $this->documentData($invoice))
-            ->setOption('defaultFont', 'DejaVu Sans');
-
+        $data = $this->documentData($invoice);
         $path = "invoices/{$invoice->id}.pdf";
-        Storage::disk('local')->put($path, $pdf->output());
+
+        Storage::disk('local')->put($path, $this->renderPdf($data));
 
         return $path;
     }
@@ -48,6 +49,22 @@ class InvoicePdfService
             'qrCode' => $this->paymentQrService->generateBase64($invoice),
             'iban' => $this->formatIban($invoice->user->bank_account),
         ];
+    }
+
+    /**
+     * @param  array{invoice: Invoice, user: \App\Models\User, client: \App\Models\Client, qrCode: ?string, iban: ?string}  $data
+     */
+    private function renderPdf(array $data): string
+    {
+        if ($url = config('services.gotenberg.url')) {
+            Log::info('Invoice PDF: Gotenberg', ['url' => $url]);
+
+            return $this->gotenbergService->renderInvoice($data);
+        }
+
+        Log::warning('Invoice PDF: DomPDF fallback (GOTENBERG_URL is not set)');
+
+        return Pdf::loadView('invoices.pdf', $data)->output();
     }
 
     private function formatIban(?string $bankAccount): ?string

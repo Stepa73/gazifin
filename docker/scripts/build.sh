@@ -14,8 +14,14 @@ source "${ENV_FILE}"
 
 IMAGE="${DOCKER_IMAGE}:${DOCKER_TAG}"
 
-echo "Building ${IMAGE}..."
-docker build -f "${ROOT_DIR}/docker/Dockerfile" -t "${IMAGE}" "${ROOT_DIR}"
+PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
+
+echo "Building ${IMAGE} for ${PLATFORM}..."
+docker build \
+    --platform "${PLATFORM}" \
+    -f "${ROOT_DIR}/docker/Dockerfile" \
+    -t "${IMAGE}" \
+    "${ROOT_DIR}"
 
 if command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --short HEAD >/dev/null 2>&1; then
     GIT_TAG="${DOCKER_IMAGE}:${DOCKER_TAG}-$(git -C "${ROOT_DIR}" rev-parse --short HEAD)"

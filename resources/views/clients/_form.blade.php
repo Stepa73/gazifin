@@ -19,7 +19,7 @@
             this.loading = true;
 
             try {
-                const response = await fetch('{{ route('clients.lookup-ico') }}?ico=' + encodeURIComponent(ico), {
+                const response = await fetch('/clients/lookup-ico?ico=' + encodeURIComponent(ico), {
                     headers: {
                         Accept: 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',

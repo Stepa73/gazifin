@@ -31,25 +31,6 @@
         width: auto;
     }
 @else
-    @font-face {
-        font-family: 'DejaVu Sans';
-        font-style: normal;
-        font-weight: 400;
-        src: url('{{ asset('fonts/dejavu/DejaVuSans.ttf') }}') format('truetype');
-    }
-    @font-face {
-        font-family: 'DejaVu Sans';
-        font-style: normal;
-        font-weight: 700;
-        src: url('{{ asset('fonts/dejavu/DejaVuSans-Bold.ttf') }}') format('truetype');
-    }
-    @font-face {
-        font-family: 'DejaVu Sans';
-        font-style: italic;
-        font-weight: 400;
-        src: url('{{ asset('fonts/dejavu/DejaVuSans-Oblique.ttf') }}') format('truetype');
-    }
-
     .invoice-document--preview {
         width: 210mm;
         max-width: 210mm;
@@ -99,7 +80,7 @@
 @endif
 
 .invoice-document {
-    font-family: 'DejaVu Sans', sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 11px;
     color: #1e293b;
     line-height: 1.45;
