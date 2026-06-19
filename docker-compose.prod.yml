@@ -1,0 +1,59 @@
+services:
+  app:
+    container_name: gazifin
+    image: gazimazi/gazifin:latest
+
+    platform: linux/amd64
+    restart: unless-stopped
+
+    environment:
+      APP_NAME: Gazifin
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL}
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: warning
+      DB_CONNECTION: sqlite
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      FILESYSTEM_DISK: local
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      GOTENBERG_URL: http://gotenberg:3000
+      PDF_ASSET_BASE_URL: http://gazifin
+    volumes:
+      - gazifin-database:/var/www/html/database
+      - gazifin-storage:/var/www/html/storage
+    networks:
+      - gazifin
+      - npm
+    depends_on:
+      - gotenberg
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://127.0.0.1/\") === false ? 1 : 0);'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  gotenberg:
+    container_name: gotenberg
+    image: gotenberg/gotenberg:8
+    platform: linux/amd64
+    restart: unless-stopped
+    networks:
+      - gazifin
+
+volumes:
+  gazifin-database:
+  gazifin-storage:
+
+networks:
+  gazifin:
+    name: gazifin
+  npm:
+    external: true
+    name: ${NPM_NETWORK}
