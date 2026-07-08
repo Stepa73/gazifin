@@ -1,7 +1,7 @@
 @props(['active' => 'home'])
 
 <nav class="fixed bottom-0 inset-x-0 z-50 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
-    <div class="grid grid-cols-4">
+    <div class="grid grid-cols-5">
         <a
             href="{{ route('dashboard') }}"
             @class([
@@ -44,6 +44,21 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11a4 4 0 1 0-8 0M4 20a8 8 0 0 1 16 0"/>
             </svg>
             Klienti
+        </a>
+
+        <a
+            href="{{ route('products.index') }}"
+            @class([
+                'flex flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
+                'text-brand' => $active === 'products',
+                'text-gray-500' => $active !== 'products',
+            ])
+        >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h5l9 9a2 2 0 0 1 0 3l-3 3a2 2 0 0 1-3 0L4 13V7Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+            </svg>
+            Ceník
         </a>
 
         <a

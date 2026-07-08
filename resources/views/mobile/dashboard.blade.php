@@ -4,16 +4,7 @@
 @endphp
 
 <x-mobile.layout active="home">
-    <div
-        class="pb-28"
-        x-data="{
-            showPromo: localStorage.getItem('gazifin-promo-dismissed') !== '1',
-            dismissPromo() {
-                this.showPromo = false;
-                localStorage.setItem('gazifin-promo-dismissed', '1');
-            },
-        }"
-    >
+    <div class="pb-28">
         {{-- Top bar --}}
         <header class="sticky top-0 z-40 border-b border-gray-100 bg-white px-4 py-3">
             <div class="flex items-center justify-between gap-3">
@@ -24,52 +15,42 @@
                     </svg>
                 </a>
 
-                <button type="button" class="flex min-w-0 flex-1 items-center justify-center gap-1 text-base font-semibold text-gray-900">
+                <div class="flex min-w-0 flex-1 items-center justify-center gap-1 text-base font-semibold text-gray-900">
                     <span class="truncate">{{ $companyName }}</span>
-                    <svg class="h-4 w-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/>
-                    </svg>
-                </button>
+                </div>
 
-                <button type="button" class="shrink-0 text-sm font-medium text-brand">Pomoc</button>
+                <div class="h-10 w-10 shrink-0" aria-hidden="true"></div>
             </div>
         </header>
 
         <x-flash-messages />
 
-        {{-- Promo banner --}}
-        <div x-show="showPromo" x-cloak class="mx-4 mt-4 rounded-xl bg-brand px-4 py-3 text-white shadow-sm">
-            <div class="flex items-start justify-between gap-3">
-                <p class="text-sm font-medium leading-snug">Naplánujte termín</p>
-                <button type="button" @click="dismissPromo()" class="rounded-full p-1 text-white/90 hover:bg-white/10" aria-label="Zavřít">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
         {{-- Overview --}}
         <section class="px-4 pt-5">
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="text-xs font-bold tracking-wide text-gray-500">PŘEHLED</h2>
-                <button type="button" class="inline-flex items-center gap-1 text-sm font-medium text-brand">
+                <a href="{{ route('reports') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>
                     </svg>
                     Reporty
-                </button>
+                </a>
             </div>
 
             <div class="space-y-3">
                 @foreach ($overviewCards as $card)
-                    <div class="rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-4">
+                    <a href="{{ route('invoices.index', ['status' => $card['status']]) }}" class="block rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-4 active:bg-gray-100">
                         <div class="mb-2 flex items-center justify-between gap-2">
                             <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{{ $card['label'] }}</span>
                             <span class="rounded-md border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-500">{{ $card['count'] }}</span>
                         </div>
-                        <div class="text-2xl font-bold text-gray-900">{{ $formatMoney($card['total']) }}</div>
-                    </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="text-2xl font-bold text-gray-900">{{ $formatMoney($card['total']) }}</div>
+                            <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 6 6 6-6 6"/>
+                            </svg>
+                        </div>
+                    </a>
                 @endforeach
             </div>
         </section>

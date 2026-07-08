@@ -12,6 +12,8 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
                     <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')">Faktury</x-nav-link>
                     <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">Klienti</x-nav-link>
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Ceník</x-nav-link>
+                    <x-nav-link :href="route('reports')" :active="request()->routeIs('reports')">Reporty</x-nav-link>
                 </div>
             </div>
 
@@ -56,6 +58,8 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')">Faktury</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">Klienti</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Ceník</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports')" :active="request()->routeIs('reports')">Reporty</x-responsive-nav-link>
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">

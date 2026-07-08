@@ -65,19 +65,9 @@
             </div>
         </form>
 
-        {{-- Category tabs --}}
-        <div class="mt-4 overflow-x-auto border-b border-gray-200">
-            <div class="flex min-w-max px-4">
-                <button type="button" class="border-b-2 border-brand px-4 pb-3 text-sm font-semibold text-brand">Faktury</button>
-                <button type="button" class="border-b-2 border-transparent px-4 pb-3 text-sm font-medium text-gray-400">Cen. nabídky</button>
-                <button type="button" class="border-b-2 border-transparent px-4 pb-3 text-sm font-medium text-gray-400">Přijaté objednávky</button>
-                <button type="button" class="border-b-2 border-transparent px-4 pb-3 text-sm font-medium text-gray-400">Zál. faktury</button>
-            </div>
-        </div>
-
         {{-- Quick filters --}}
-        <div class="flex gap-2 overflow-x-auto px-4 py-3">
-            @foreach (['all' => 'Všechny', 'unsent' => 'Neodesláno', 'this_year' => 'Tento rok'] as $value => $label)
+        <div class="mt-4 flex gap-2 overflow-x-auto border-t border-gray-100 px-4 py-3">
+            @foreach (['all' => 'Všechny', 'overdue' => 'Po splatnosti', 'unpaid' => 'Neuhrazené', 'unsent' => 'Neodesláno', 'paid' => 'Uhrazené'] as $value => $label)
                 <a
                     href="{{ route('invoices.index', array_filter(['status' => $value !== 'all' ? $value : null, 'q' => $search ?: null])) }}"
                     @class([
@@ -107,20 +97,27 @@
                     </div>
                 </a>
             @empty
-                @foreach ($demoInvoices as $demo)
-                    <div class="px-4 py-4 opacity-80">
-                        <div class="flex items-start justify-between gap-4">
-                            <div class="min-w-0">
-                                <div class="truncate text-base font-semibold text-gray-900">{{ $demo['client'] }}</div>
-                                <div class="mt-1 text-sm text-gray-500">{{ $demo['number'] }}</div>
-                            </div>
-                            <div class="shrink-0 text-right">
-                                <div class="text-base font-bold text-gray-900">{{ $formatMoney((float) $demo['total']) }}</div>
-                                <div class="mt-1 text-sm font-medium {{ $statusClasses[$demo['status']] }}">{{ $statusLabels[$demo['status']] }}</div>
+                @if ($isFiltered ?? false)
+                    <div class="px-4 py-10 text-center">
+                        <p class="text-sm text-gray-500">Žádné faktury neodpovídají zadanému filtru.</p>
+                        <a href="{{ route('invoices.index') }}" class="mt-3 inline-flex items-center text-sm font-semibold text-brand">Zrušit filtr</a>
+                    </div>
+                @else
+                    @foreach ($demoInvoices as $demo)
+                        <div class="px-4 py-4 opacity-80">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <div class="truncate text-base font-semibold text-gray-900">{{ $demo['client'] }}</div>
+                                    <div class="mt-1 text-sm text-gray-500">{{ $demo['number'] }}</div>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <div class="text-base font-bold text-gray-900">{{ $formatMoney((float) $demo['total']) }}</div>
+                                    <div class="mt-1 text-sm font-medium {{ $statusClasses[$demo['status']] }}">{{ $statusLabels[$demo['status']] }}</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                @endif
             @endforelse
         </div>
 

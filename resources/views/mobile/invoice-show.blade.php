@@ -9,26 +9,79 @@
 
     <x-flash-messages />
 
-    <div class="mb-4 flex gap-2 overflow-x-auto pb-1">
-        <a href="{{ route('invoices.pdf', $invoice) }}" class="inline-flex shrink-0 items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700">
-            Stáhnout PDF
-        </a>
-        @if ($invoice->client->email)
-            <form method="POST" action="{{ route('invoices.send', $invoice) }}">
-                @csrf
-                <button type="submit" class="inline-flex shrink-0 items-center rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white">
-                    Odeslat emailem
-                </button>
-            </form>
-        @endif
+    {{-- Stav faktury --}}
+    <div class="mb-4 flex items-center justify-between">
+        <span class="text-sm text-gray-500">Stav faktury</span>
         <span @class([
-            'inline-flex shrink-0 items-center rounded-full px-4 py-2 text-xs font-semibold',
+            'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
             'bg-orange-50 text-orange-600' => $invoice->status === 'draft',
             'bg-blue-50 text-blue-600' => $invoice->status === 'sent',
             'bg-green-50 text-green-600' => $invoice->status === 'paid',
         ])>
             {{ $invoice->mobileStatusLabel() }}
         </span>
+    </div>
+
+    {{-- Akce --}}
+    <div class="mb-5 space-y-2">
+        @if ($invoice->status === 'paid')
+            <form method="POST" action="{{ route('invoices.mark-unpaid', $invoice) }}">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 active:bg-gray-50">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 4v6h6M20 20v-6h-6"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a8 8 0 0 1 14-4M20 14a8 8 0 0 1-14 4"/>
+                    </svg>
+                    Zrušit úhradu
+                </button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('invoices.mark-paid', $invoice) }}">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white active:bg-green-700">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Označit jako zaplacenou
+                </button>
+            </form>
+        @endif
+
+        @if ($invoice->client->email)
+            <form method="POST" action="{{ route('invoices.send', $invoice) }}">
+                @csrf
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white active:opacity-90">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16v12H4z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m4 7 8 6 8-6"/>
+                    </svg>
+                    Odeslat emailem
+                </button>
+            </form>
+        @endif
+
+        <a href="{{ route('invoices.pdf', $invoice) }}" class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 active:bg-gray-50">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/>
+            </svg>
+            Stáhnout PDF
+        </a>
+
+        <x-confirm-delete
+            class="w-full"
+            :action="route('invoices.destroy', $invoice)"
+            title="Smazat fakturu {{ $invoice->number }}?"
+            trigger-class="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white py-3 text-sm font-semibold text-red-600 active:bg-red-50"
+        >
+            <x-slot:trigger>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
+                </svg>
+                Smazat fakturu
+            </x-slot:trigger>
+        </x-confirm-delete>
     </div>
 
     <p class="mb-3 text-xs text-gray-500">Náhled odpovídá PDF — na telefonu je automaticky zmenšený, ale proporce zůstávají stejné.</p>

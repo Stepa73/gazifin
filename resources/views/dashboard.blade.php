@@ -3,6 +3,9 @@
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>
             <div class="flex gap-2">
+                <a href="{{ route('reports') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
+                    Reporty
+                </a>
                 <a href="{{ route('invoices.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500">
                     Nová faktura
                 </a>
@@ -19,18 +22,18 @@
                 <x-flash-messages />
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-6 shadow sm:rounded-lg">
+                    <a href="{{ route('invoices.index') }}" class="bg-white p-6 shadow sm:rounded-lg hover:shadow-md transition">
                         <div class="text-sm text-gray-500">Faktury celkem</div>
                         <div class="text-3xl font-semibold text-gray-900">{{ $stats['invoices_total'] }}</div>
-                    </div>
-                    <div class="bg-white p-6 shadow sm:rounded-lg">
+                    </a>
+                    <a href="{{ route('invoices.index', ['status' => 'unpaid']) }}" class="bg-white p-6 shadow sm:rounded-lg hover:shadow-md transition">
                         <div class="text-sm text-gray-500">Nezaplacené</div>
                         <div class="text-3xl font-semibold text-gray-900">{{ $stats['invoices_unpaid'] }}</div>
-                    </div>
-                    <div class="bg-white p-6 shadow sm:rounded-lg">
+                    </a>
+                    <a href="{{ route('clients.index') }}" class="bg-white p-6 shadow sm:rounded-lg hover:shadow-md transition">
                         <div class="text-sm text-gray-500">Klienti</div>
                         <div class="text-3xl font-semibold text-gray-900">{{ $stats['clients_total'] }}</div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

@@ -12,9 +12,34 @@
                         <x-primary-button>Odeslat emailem</x-primary-button>
                     </form>
                 @endif
+                @if ($invoice->status === 'paid')
+                    <form method="POST" action="{{ route('invoices.mark-unpaid', $invoice) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
+                            Zrušit úhradu
+                        </button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('invoices.mark-paid', $invoice) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500">
+                            Označit jako zaplacenou
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('invoices.edit', $invoice) }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
                     Upravit
                 </a>
+                <x-confirm-delete
+                    class="inline-flex"
+                    :action="route('invoices.destroy', $invoice)"
+                    title="Smazat fakturu {{ $invoice->number }}?"
+                    trigger-class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-md font-semibold text-xs text-red-600 uppercase tracking-widest hover:bg-red-50"
+                >
+                    <x-slot:trigger>Smazat</x-slot:trigger>
+                </x-confirm-delete>
             </div>
         </div>
     </x-slot>

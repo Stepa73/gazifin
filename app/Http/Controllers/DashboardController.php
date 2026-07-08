@@ -30,6 +30,7 @@ class DashboardController extends Controller
         $overviewCards = [
             [
                 'label' => 'Faktury po splatnosti',
+                'status' => 'overdue',
                 'count' => Invoice::query()
                     ->where('user_id', $userId)
                     ->where('status', '!=', 'paid')
@@ -43,6 +44,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Neuhrazené faktury',
+                'status' => 'unpaid',
                 'count' => Invoice::query()
                     ->where('user_id', $userId)
                     ->whereIn('status', ['draft', 'sent'])
@@ -54,6 +56,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Neodeslané faktury',
+                'status' => 'unsent',
                 'count' => Invoice::query()
                     ->where('user_id', $userId)
                     ->where('status', 'draft')
@@ -65,6 +68,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Uhrazené faktury',
+                'status' => 'paid',
                 'count' => Invoice::query()
                     ->where('user_id', $userId)
                     ->where('status', 'paid')

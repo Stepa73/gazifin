@@ -46,7 +46,7 @@ class InvoiceServiceTest extends TestCase
             'is_vat_payer' => false,
         ]);
 
-        $this->assertSame('2026-0100', app(InvoiceService::class)->generateNumber($user));
+        $this->assertSame('20260100', app(InvoiceService::class)->generateNumber($user));
     }
 
     public function test_it_sets_due_date_to_fifteenth_of_next_month(): void

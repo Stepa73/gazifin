@@ -10,6 +10,11 @@
         'quantity' => $item->quantity,
         'unit_price' => $item->unit_price,
     ])->toArray() ?? [['description' => '', 'quantity' => 1, 'unit_price' => 0]]);
+    $productOptions = ($products ?? collect())->map(fn ($product) => [
+        'id' => $product->id,
+        'name' => $product->name,
+        'unit_price' => (float) $product->unit_price,
+    ])->values();
 @endphp
 
 <form method="POST" action="{{ $action }}"
@@ -20,7 +25,8 @@
           {{ json_encode($defaultDueDate) }},
           {{ json_encode($invoiceNumber) }},
           {{ json_encode($variableSymbol) }},
-          {{ json_encode($suggestedNumber) }}
+          {{ json_encode($suggestedNumber) }},
+          {{ json_encode($productOptions) }}
       )">
     @csrf
     @if ($method !== 'POST')
@@ -114,6 +120,18 @@
 
         <template x-for="(item, index) in items" :key="index">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div class="md:col-span-12" x-show="products.length">
+                    <x-input-label value="Z ceníku" />
+                    <select
+                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                        @change="applyProduct(item, $event.target.value); $event.target.value = ''"
+                    >
+                        <option value="">— vybrat z ceníku —</option>
+                        <template x-for="product in products" :key="product.id">
+                            <option :value="product.id" x-text="product.name + ' (' + formatMoney(product.unit_price) + ')'"></option>
+                        </template>
+                    </select>
+                </div>
                 <div class="md:col-span-5">
                     <x-input-label value="Popis" />
                     <input type="text" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
@@ -161,7 +179,7 @@
 </form>
 
 <script>
-    function invoiceForm(initialItems, isVatPayer, initialIssueDate, initialDueDate, initialNumber, initialVariableSymbol, suggestedNumber) {
+    function invoiceForm(initialItems, isVatPayer, initialIssueDate, initialDueDate, initialNumber, initialVariableSymbol, suggestedNumber, products) {
         return {
             items: initialItems.length ? initialItems : [{ description: '', quantity: 1, unit_price: 0 }],
             isVatPayer: isVatPayer,
@@ -170,11 +188,26 @@
             invoiceNumber: initialNumber,
             variableSymbol: initialVariableSymbol,
             suggestedNumber: suggestedNumber,
+            products: products || [],
             addItem() {
                 this.items.push({ description: '', quantity: 1, unit_price: 0 });
             },
             removeItem(index) {
                 this.items.splice(index, 1);
+            },
+            applyProduct(item, productId) {
+                const product = this.products.find(p => String(p.id) === String(productId));
+
+                if (! product) {
+                    return;
+                }
+
+                item.description = product.name;
+                item.unit_price = product.unit_price;
+
+                if (! item.quantity || Number(item.quantity) <= 0) {
+                    item.quantity = 1;
+                }
             },
             lineTotal(item) {
                 return Math.round((Number(item.quantity) || 0) * (Number(item.unit_price) || 0) * 100) / 100;

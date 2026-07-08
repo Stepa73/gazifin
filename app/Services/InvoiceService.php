@@ -11,13 +11,13 @@ class InvoiceService
     public function generateNumber(User $user, ?int $year = null): string
     {
         $year ??= now()->year;
-        $prefix = $year.'-';
+        $prefix = (string) $year;
 
         $maxSequence = Invoice::query()
             ->where('user_id', $user->id)
             ->where('number', 'like', $prefix.'%')
             ->pluck('number')
-            ->map(fn (string $number) => (int) substr($number, strlen($prefix)))
+            ->map(fn (string $number) => (int) preg_replace('/\D/', '', substr($number, strlen($prefix))))
             ->max() ?? 0;
 
         return $prefix.str_pad((string) ($maxSequence + 1), 4, '0', STR_PAD_LEFT);

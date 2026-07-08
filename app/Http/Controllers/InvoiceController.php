@@ -41,18 +41,32 @@ class InvoiceController extends Controller
 
         if ($statusFilter === 'unsent') {
             $query->where('status', 'draft');
+        } elseif ($statusFilter === 'unpaid') {
+            $query->whereIn('status', ['draft', 'sent']);
+        } elseif ($statusFilter === 'paid') {
+            $query->where('status', 'paid');
+        } elseif ($statusFilter === 'overdue') {
+            $query->where('status', '!=', 'paid')
+                ->whereDate('due_date', '<', now()->toDateString());
         } elseif ($statusFilter === 'this_year') {
             $query->whereYear('issue_date', now()->year);
         }
 
         $invoices = $query->latest()->paginate(15)->withQueryString();
 
-        return view('invoices.index', compact('invoices', 'search', 'statusFilter'));
+        $isFiltered = $search !== '' || $statusFilter !== 'all';
+
+        return view('invoices.index', compact('invoices', 'search', 'statusFilter', 'isFiltered'));
     }
 
     public function create(): View
     {
         $clients = Client::query()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
+
+        $products = \App\Models\Product::query()
             ->where('user_id', auth()->id())
             ->orderBy('name')
             ->get();
@@ -67,6 +81,7 @@ class InvoiceController extends Controller
 
         return view('invoices.create', compact(
             'clients',
+            'products',
             'invoiceNumber',
             'suggestedNumber',
             'variableSymbol',
@@ -132,10 +147,15 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
+        $products = \App\Models\Product::query()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
+
         $isVatPayer = $invoice->is_vat_payer;
         $suggestedNumber = $this->invoiceService->generateNumber(auth()->user());
 
-        return view('invoices.edit', compact('invoice', 'clients', 'isVatPayer', 'suggestedNumber'));
+        return view('invoices.edit', compact('invoice', 'clients', 'products', 'isVatPayer', 'suggestedNumber'));
     }
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): RedirectResponse
@@ -182,6 +202,24 @@ class InvoiceController extends Controller
         $invoice->delete();
 
         return redirect()->route('invoices.index')->with('success', 'Faktura byla smazána.');
+    }
+
+    public function markPaid(Invoice $invoice): RedirectResponse
+    {
+        $this->authorize('update', $invoice);
+
+        $invoice->update(['status' => 'paid']);
+
+        return back()->with('success', 'Faktura byla označena jako zaplacená.');
+    }
+
+    public function markUnpaid(Invoice $invoice): RedirectResponse
+    {
+        $this->authorize('update', $invoice);
+
+        $invoice->update(['status' => 'sent']);
+
+        return back()->with('success', 'Úhrada faktury byla zrušena.');
     }
 
     public function pdf(Invoice $invoice)

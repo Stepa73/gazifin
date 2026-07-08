@@ -53,7 +53,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="md:col-span-2">
             <x-input-label for="ico" value="IČO" />
-            <div class="mt-1 flex gap-2">
+            <div class="mt-1 flex flex-col gap-2 sm:flex-row">
                 <x-text-input
                     id="ico"
                     name="ico"
@@ -63,7 +63,7 @@
                 />
                 <button
                     type="button"
-                    class="inline-flex shrink-0 items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50"
+                    class="inline-flex w-full shrink-0 items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50 sm:w-auto"
                     @click="fetchFromAres()"
                     :disabled="loading"
                 >
@@ -106,8 +106,8 @@
         <x-input-error :messages="$errors->get('dic')" class="mt-2" />
     </div>
 
-    <div class="flex justify-end gap-2">
-        <a href="{{ route('clients.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">Zrušit</a>
-        <x-primary-button>Uložit</x-primary-button>
+    <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+        <a href="{{ route('clients.index') }}" class="inline-flex w-full items-center justify-center px-4 py-2.5 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 sm:w-auto sm:py-2">Zrušit</a>
+        <x-primary-button class="w-full justify-center py-2.5 sm:w-auto sm:py-2">Uložit</x-primary-button>
     </div>
 </form>
