@@ -14,7 +14,12 @@ services:
       APP_URL: ${APP_URL}
       LOG_CHANNEL: stderr
       LOG_LEVEL: warning
-      DB_CONNECTION: sqlite
+      DB_CONNECTION: mysql
+      DB_HOST: ${DB_HOST:-mfsys_mysql_1}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-gazifin}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SESSION_DRIVER: file
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
@@ -25,15 +30,20 @@ services:
       GOTENBERG_URL: http://gotenberg:3000
       PDF_ASSET_BASE_URL: http://gazifin
     volumes:
-      - gazifin-database:/var/www/html/database
+      # Původní SQLite volume — jen pro jednorázový import do MySQL (db:import-sqlite).
+      # Po úspěšném přenosu dat lze tenhle mount i volume gazifin-database smazat.
+      - gazifin-database:/var/www/html/database-legacy
       - gazifin-storage:/var/www/html/storage
     networks:
       - gazifin
       - npm
+      - mysql
     depends_on:
       - gotenberg
     healthcheck:
-      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://127.0.0.1/\") === false ? 1 : 0);'"]
+      # Ověří, že Laravel naběhl a health endpoint /up vrací HTTP 200.
+      # Pozná i chybu aplikace (5xx), ne jen spadlé spojení. Bez závislosti na curl/wget.
+      test: ["CMD-SHELL", "php -r 'exit((strpos(@get_headers(\"http://127.0.0.1/up\", false, stream_context_create([\"http\"=>[\"timeout\"=>5]]))[0] ?? \"\", \" 200 \") !== false) ? 0 : 1);'"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,3 +67,8 @@ networks:
   npm:
     external: true
     name: ${NPM_NETWORK}
+  # Síť, ve které běží mfsys_mysql_1. Zjistíš ji přes:
+  #   docker inspect -f '{{range $$k,$$v := .NetworkSettings.Networks}}{{$$k}}{{"\n"}}{{end}}' mfsys_mysql_1
+  mysql:
+    external: true
+    name: ${MYSQL_NETWORK}
