@@ -104,6 +104,7 @@ class InvoiceController extends Controller
             $invoice = $user->invoices()->create([
                 'client_id' => $client->id,
                 'number' => $number,
+                'order_number' => $request->input('order_number'),
                 'issue_date' => $request->input('issue_date'),
                 'due_date' => $request->input('due_date'),
                 'status' => 'draft',
@@ -171,6 +172,7 @@ class InvoiceController extends Controller
             $invoice->update([
                 'client_id' => $client->id,
                 'number' => $request->string('number')->toString(),
+                'order_number' => $request->input('order_number'),
                 'issue_date' => $request->input('issue_date'),
                 'due_date' => $request->input('due_date'),
                 'notes' => $request->input('notes'),

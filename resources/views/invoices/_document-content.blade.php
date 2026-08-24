@@ -46,6 +46,12 @@
                         <td class="meta-label">Variabilní symbol</td>
                         <td class="meta-value vs-value">{{ $variableSymbol }}</td>
                     </tr>
+                    @if ($invoice->order_number)
+                        <tr>
+                            <td class="meta-label">Číslo objednávky</td>
+                            <td class="meta-value">{{ $invoice->order_number }}</td>
+                        </tr>
+                    @endif
                 </table>
             </td>
         </tr>

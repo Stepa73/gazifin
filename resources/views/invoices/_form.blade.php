@@ -61,6 +61,19 @@
         </div>
 
         <div class="md:col-span-2">
+            <x-input-label for="order_number" value="Číslo objednávky" />
+            <input
+                id="order_number"
+                name="order_number"
+                type="text"
+                value="{{ old('order_number', $invoice?->order_number) }}"
+                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+            >
+            <p class="mt-1 text-xs text-gray-500">Nepovinné. Zobrazí se na faktuře pod hlavičkou.</p>
+            <x-input-error :messages="$errors->get('order_number')" class="mt-2" />
+        </div>
+
+        <div class="md:col-span-2">
             <x-input-label for="client_id" value="Klient" />
             <select id="client_id" name="client_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                 <option value="">Vyberte klienta</option>

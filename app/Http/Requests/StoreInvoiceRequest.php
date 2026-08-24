@@ -21,6 +21,7 @@ class StoreInvoiceRequest extends FormRequest
                 'max:50',
                 Rule::unique('invoices', 'number')->where('user_id', auth()->id()),
             ],
+            'order_number' => ['nullable', 'string', 'max:50'],
             'client_id' => ['required', 'exists:clients,id'],
             'issue_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:issue_date'],

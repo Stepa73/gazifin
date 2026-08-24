@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'user_id',
     'client_id',
     'number',
+    'order_number',
     'issue_date',
     'due_date',
     'status',
