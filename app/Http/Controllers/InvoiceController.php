@@ -52,11 +52,18 @@ class InvoiceController extends Controller
             $query->whereYear('issue_date', now()->year);
         }
 
-        $invoices = $query->latest()->paginate(15)->withQueryString();
+        $sort = request('sort') === 'issue_date' ? 'issue_date' : 'created_at';
+        $direction = request('direction') === 'asc' ? 'asc' : 'desc';
+
+        $invoices = $query
+            ->orderBy($sort, $direction)
+            ->orderBy('id', $direction)
+            ->paginate(15)
+            ->withQueryString();
 
         $isFiltered = $search !== '' || $statusFilter !== 'all';
 
-        return view('invoices.index', compact('invoices', 'search', 'statusFilter', 'isFiltered'));
+        return view('invoices.index', compact('invoices', 'search', 'statusFilter', 'isFiltered', 'sort', 'direction'));
     }
 
     public function create(): View

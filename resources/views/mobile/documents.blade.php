@@ -2,11 +2,22 @@
     $formatMoney = fn (float $amount): string => number_format($amount, 2, ',', ' ').' Kč';
     $search = $search ?? '';
     $statusFilter = $statusFilter ?? 'all';
+    $sort = $sort ?? 'created_at';
+    $direction = $direction ?? 'desc';
+    $sortedByIssueDate = $sort === 'issue_date';
+    $sortParams = $sortedByIssueDate ? ['sort' => 'issue_date', 'direction' => $direction] : [];
+    $issueDateSortUrl = $issueDateSortUrl ?? route('invoices.index', array_filter([
+        'status' => $statusFilter !== 'all' ? $statusFilter : null,
+        'q' => $search ?: null,
+    ]) + [
+        'sort' => 'issue_date',
+        'direction' => $sortedByIssueDate && $direction === 'desc' ? 'asc' : 'desc',
+    ]);
 
     $demoInvoices = [
-        ['client' => 'Ukázkový klient a.s.', 'number' => '2026-0002', 'total' => 1000, 'status' => 'draft', 'url' => null],
-        ['client' => 'Demo Solutions s.r.o.', 'number' => '2026-0001', 'total' => 459500, 'status' => 'sent', 'url' => null],
-        ['client' => 'Test Company', 'number' => '2025-0042', 'total' => 12500, 'status' => 'paid', 'url' => null],
+        ['client' => 'Ukázkový klient a.s.', 'number' => '2026-0002', 'issue_date' => '12.02.2026', 'total' => 1000, 'status' => 'draft', 'url' => null],
+        ['client' => 'Demo Solutions s.r.o.', 'number' => '2026-0001', 'issue_date' => '05.01.2026', 'total' => 459500, 'status' => 'sent', 'url' => null],
+        ['client' => 'Test Company', 'number' => '2025-0042', 'issue_date' => '18.11.2025', 'total' => 12500, 'status' => 'paid', 'url' => null],
     ];
 
     $statusClasses = [
@@ -62,6 +73,10 @@
                 @if ($statusFilter !== 'all')
                     <input type="hidden" name="status" value="{{ $statusFilter }}">
                 @endif
+                @if ($sortedByIssueDate)
+                    <input type="hidden" name="sort" value="issue_date">
+                    <input type="hidden" name="direction" value="{{ $direction }}">
+                @endif
             </div>
         </form>
 
@@ -69,7 +84,7 @@
         <div class="mt-4 flex gap-2 overflow-x-auto border-t border-gray-100 px-4 py-3">
             @foreach (['all' => 'Všechny', 'overdue' => 'Po splatnosti', 'unpaid' => 'Neuhrazené', 'unsent' => 'Neodesláno', 'paid' => 'Uhrazené'] as $value => $label)
                 <a
-                    href="{{ route('invoices.index', array_filter(['status' => $value !== 'all' ? $value : null, 'q' => $search ?: null])) }}"
+                    href="{{ route('invoices.index', array_filter(['status' => $value !== 'all' ? $value : null, 'q' => $search ?: null]) + $sortParams) }}"
                     @class([
                         'shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium',
                         'border-brand bg-brand-light text-brand' => $statusFilter === $value,
@@ -81,6 +96,26 @@
             @endforeach
         </div>
 
+        {{-- Sorting --}}
+        <div class="flex items-center justify-end border-t border-gray-100 px-4 py-2">
+            <a
+                href="{{ $issueDateSortUrl }}"
+                @class([
+                    'inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium',
+                    'border-brand bg-brand-light text-brand' => $sortedByIssueDate,
+                    'border-gray-200 bg-white text-gray-600' => ! $sortedByIssueDate,
+                ])
+            >
+                Datum vystavení
+                @if ($sortedByIssueDate)
+                    <span aria-hidden="true">{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                    <span class="sr-only">{{ $direction === 'asc' ? 'seřazeno vzestupně' : 'seřazeno sestupně' }}</span>
+                @else
+                    <span class="text-gray-300" aria-hidden="true">↕</span>
+                @endif
+            </a>
+        </div>
+
         {{-- Invoice list --}}
         <div class="divide-y divide-gray-100 border-t border-gray-100">
             @forelse ($invoices as $invoice)
@@ -88,7 +123,7 @@
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <div class="truncate text-base font-semibold text-gray-900">{{ $invoice->client->name }}</div>
-                            <div class="mt-1 text-sm text-gray-500">{{ $invoice->number }}</div>
+                            <div class="mt-1 text-sm text-gray-500">{{ $invoice->number }} · {{ $invoice->issue_date->format('d.m.Y') }}</div>
                         </div>
                         <div class="shrink-0 text-right">
                             <div class="text-base font-bold text-gray-900">{{ $formatMoney((float) $invoice->total) }}</div>
@@ -108,7 +143,7 @@
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0">
                                     <div class="truncate text-base font-semibold text-gray-900">{{ $demo['client'] }}</div>
-                                    <div class="mt-1 text-sm text-gray-500">{{ $demo['number'] }}</div>
+                                    <div class="mt-1 text-sm text-gray-500">{{ $demo['number'] }} · {{ $demo['issue_date'] }}</div>
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <div class="text-base font-bold text-gray-900">{{ $formatMoney((float) $demo['total']) }}</div>
