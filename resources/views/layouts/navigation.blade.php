@@ -14,6 +14,10 @@
                     <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">Klienti</x-nav-link>
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Ceník</x-nav-link>
                     <x-nav-link :href="route('reports')" :active="request()->routeIs('reports')">Reporty</x-nav-link>
+                    <x-nav-link :href="route('calculator.index')" :active="request()->routeIs('calculator.*')">
+                        Kalkulačka
+                        <span class="ms-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">Beta</span>
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -60,6 +64,7 @@
             <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">Klienti</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Ceník</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports')" :active="request()->routeIs('reports')">Reporty</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('calculator.index')" :active="request()->routeIs('calculator.*')">Kalkulačka (beta)</x-responsive-nav-link>
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">
