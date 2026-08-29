@@ -94,16 +94,18 @@ class InvoiceSortingTest extends TestCase
         $this->assertSame([$newest->id, $oldest->id], $invoices->pluck('id')->all());
     }
 
-    public function test_both_layouts_render_a_sorting_control(): void
+    public function test_a_single_sorting_control_serves_both_layouts(): void
     {
         [$user] = $this->twoInvoices();
 
-        $this->actingAs($user)
+        $html = $this->actingAs($user)
             ->get(route('invoices.index'))
             ->assertOk()
-            // Hlavička tabulky (desktop) i přepínač v seznamu (mobil).
-            ->assertSee('Seřadit podle data vystavení')
-            ->assertSee('Datum vystavení');
+            ->assertSee('Datum vystavení')
+            ->getContent();
+
+        // Po sjednocení je přepínač jen jeden, ne zvlášť pro mobil a desktop.
+        $this->assertSame(1, substr_count($html, 'Přepnout směr řazení podle data vystavení'));
     }
 
     public function test_sorting_link_keeps_the_active_search_and_filter(): void

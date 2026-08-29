@@ -1,47 +1,38 @@
-<x-app-layout>
+@php
+    $sections = [
+        ['title' => 'PROFIL', 'partial' => 'profile.partials.update-profile-information-form'],
+        ['title' => 'FIREMNÍ ÚDAJE', 'partial' => 'profile.partials.update-company-information-form'],
+        ['title' => 'GMAIL', 'partial' => 'profile.partials.gmail-connection-form'],
+        ['title' => 'HESLO', 'partial' => 'profile.partials.update-password-form'],
+        ['title' => 'SMAZAT ÚČET', 'partial' => 'profile.partials.delete-user-form'],
+    ];
+@endphp
+
+<x-app-layout title="VÍCE" active="more">
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Profile') }}</h2>
     </x-slot>
 
-    <div class="hidden lg:block">
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <x-flash-messages />
-
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+    <x-page class="space-y-4 px-4 py-4 lg:space-y-6 lg:py-12">
+        @foreach ($sections as $section)
+            <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white lg:rounded-lg lg:border-0 lg:shadow">
+                <div class="border-b border-gray-100 px-4 py-3 lg:px-8 lg:pt-6">
+                    <h2 class="text-xs font-bold tracking-wide text-gray-500">{{ $section['title'] }}</h2>
+                </div>
+                <div class="p-4 lg:p-8">
                     <div class="max-w-xl">
-                        @include('profile.partials.update-profile-information-form')
+                        @include($section['partial'])
                     </div>
                 </div>
+            </section>
+        @endforeach
 
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        @include('profile.partials.update-company-information-form')
-                    </div>
-                </div>
-
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        @include('profile.partials.gmail-connection-form')
-                    </div>
-                </div>
-
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        @include('profile.partials.update-password-form')
-                    </div>
-                </div>
-
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        @include('profile.partials.delete-user-form')
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @include('mobile.more')
+        {{-- Na desktopu se odhlašuje z rozbalovacího menu v navigaci. --}}
+        <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
+            @csrf
+            <button type="submit" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-left text-base font-semibold text-gray-900 active:bg-gray-50">
+                Odhlásit se
+            </button>
+        </form>
+    </x-page>
 </x-app-layout>
