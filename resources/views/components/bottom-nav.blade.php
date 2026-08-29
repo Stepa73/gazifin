@@ -1,6 +1,6 @@
 @props(['active' => 'home'])
 
-<nav class="fixed bottom-0 inset-x-0 z-50 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
+<nav class="fixed bottom-0 inset-x-0 z-50 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
     <div class="grid grid-cols-5">
         <a
             href="{{ route('dashboard') }}"
