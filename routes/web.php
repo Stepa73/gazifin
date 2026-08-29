@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IncomeCalculatorController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/reports', ReportController::class)->name('reports');
+
+    Route::get('/kalkulacka', [IncomeCalculatorController::class, 'index'])->name('calculator.index');
+    Route::put('/kalkulacka', [IncomeCalculatorController::class, 'update'])->name('calculator.update');
 
     Route::get('/clients/lookup-ico', [ClientController::class, 'lookupByIco'])->name('clients.lookup-ico');
     Route::resource('clients', ClientController::class)->except(['show']);
