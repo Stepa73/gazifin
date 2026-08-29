@@ -1,13 +1,8 @@
 @php
-    $sort = $sort ?? 'created_at';
     $direction = $direction ?? 'desc';
-    $sortedByIssueDate = $sort === 'issue_date';
-    $issueDateSortDirection = $sortedByIssueDate && $direction === 'desc' ? 'asc' : 'desc';
-    $sortQuery = collect(request()->query())->except(['page', 'sort', 'direction'])->all();
-    $issueDateSortUrl = route('invoices.index', $sortQuery + [
-        'sort' => 'issue_date',
-        'direction' => $issueDateSortDirection,
-    ]);
+    $issueDateSortDirection = $direction === 'desc' ? 'asc' : 'desc';
+    $sortQuery = collect(request()->query())->except(['page', 'direction'])->all();
+    $issueDateSortUrl = route('invoices.index', $sortQuery + ['direction' => $issueDateSortDirection]);
 @endphp
 
 <x-app-layout>
@@ -26,10 +21,7 @@
                 <x-flash-messages />
 
                 <form method="GET" action="{{ route('invoices.index') }}" class="mb-4 flex flex-wrap items-center gap-2">
-                    @if ($sortedByIssueDate)
-                        <input type="hidden" name="sort" value="issue_date">
-                        <input type="hidden" name="direction" value="{{ $direction }}">
-                    @endif
+                    <input type="hidden" name="direction" value="{{ $direction }}">
                     <input
                         type="search"
                         name="q"
@@ -63,12 +55,8 @@
                                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                             <a href="{{ $issueDateSortUrl }}" class="inline-flex items-center gap-1 hover:text-gray-700" title="Seřadit podle data vystavení">
                                                 Vystaveno
-                                                @if ($sortedByIssueDate)
-                                                    <span aria-hidden="true">{{ $direction === 'asc' ? '↑' : '↓' }}</span>
-                                                    <span class="sr-only">{{ $direction === 'asc' ? 'seřazeno vzestupně' : 'seřazeno sestupně' }}</span>
-                                                @else
-                                                    <span class="text-gray-300" aria-hidden="true">↕</span>
-                                                @endif
+                                                <span aria-hidden="true">{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                                                <span class="sr-only">{{ $direction === 'asc' ? 'seřazeno vzestupně' : 'seřazeno sestupně' }}</span>
                                             </a>
                                         </th>
                                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Splatnost</th>

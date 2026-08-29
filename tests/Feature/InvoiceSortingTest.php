@@ -49,7 +49,7 @@ class InvoiceSortingTest extends TestCase
         [$user, $oldest, $newest] = $this->twoInvoices();
 
         $invoices = $this->actingAs($user)
-            ->get(route('invoices.index', ['sort' => 'issue_date', 'direction' => 'asc']))
+            ->get(route('invoices.index', ['direction' => 'asc']))
             ->assertOk()
             ->viewData('invoices');
 
@@ -61,14 +61,14 @@ class InvoiceSortingTest extends TestCase
         [$user, $oldest, $newest] = $this->twoInvoices();
 
         $invoices = $this->actingAs($user)
-            ->get(route('invoices.index', ['sort' => 'issue_date', 'direction' => 'desc']))
+            ->get(route('invoices.index', ['direction' => 'desc']))
             ->assertOk()
             ->viewData('invoices');
 
         $this->assertSame([$newest->id, $oldest->id], $invoices->pluck('id')->all());
     }
 
-    public function test_default_listing_keeps_the_newest_created_invoice_first(): void
+    public function test_default_listing_is_sorted_by_issue_date_from_the_newest(): void
     {
         [$user, $oldest, $newest] = $this->twoInvoices();
 
@@ -77,18 +77,21 @@ class InvoiceSortingTest extends TestCase
             ->assertOk()
             ->viewData('invoices');
 
-        $this->assertSame([$oldest->id, $newest->id], $invoices->pluck('id')->all());
+        // Bez parametrů, přestože $oldest byla založena později.
+        $this->assertSame([$newest->id, $oldest->id], $invoices->pluck('id')->all());
     }
 
-    public function test_unknown_sort_and_direction_fall_back_to_the_default(): void
+    public function test_unknown_direction_falls_back_to_descending(): void
     {
-        [$user] = $this->twoInvoices();
+        [$user, $oldest, $newest] = $this->twoInvoices();
 
-        $this->actingAs($user)
-            ->get(route('invoices.index', ['sort' => 'total; drop table invoices', 'direction' => 'sideways']))
+        $invoices = $this->actingAs($user)
+            ->get(route('invoices.index', ['direction' => 'sideways; drop table invoices']))
             ->assertOk()
-            ->assertViewHas('sort', 'created_at')
-            ->assertViewHas('direction', 'desc');
+            ->assertViewHas('direction', 'desc')
+            ->viewData('invoices');
+
+        $this->assertSame([$newest->id, $oldest->id], $invoices->pluck('id')->all());
     }
 
     public function test_both_layouts_render_a_sorting_control(): void
@@ -113,8 +116,7 @@ class InvoiceSortingTest extends TestCase
             ->assertSee(route('invoices.index', [
                 'q' => 'Klient',
                 'status' => 'unpaid',
-                'sort' => 'issue_date',
-                'direction' => 'desc',
+                'direction' => 'asc',
             ]));
     }
 }

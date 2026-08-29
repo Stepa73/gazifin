@@ -2,17 +2,12 @@
     $formatMoney = fn (float $amount): string => number_format($amount, 2, ',', ' ').' Kč';
     $search = $search ?? '';
     $statusFilter = $statusFilter ?? 'all';
-    $sort = $sort ?? 'created_at';
     $direction = $direction ?? 'desc';
-    $sortedByIssueDate = $sort === 'issue_date';
-    $sortParams = $sortedByIssueDate ? ['sort' => 'issue_date', 'direction' => $direction] : [];
+    $sortParams = ['direction' => $direction];
     $issueDateSortUrl = $issueDateSortUrl ?? route('invoices.index', array_filter([
         'status' => $statusFilter !== 'all' ? $statusFilter : null,
         'q' => $search ?: null,
-    ]) + [
-        'sort' => 'issue_date',
-        'direction' => $sortedByIssueDate && $direction === 'desc' ? 'asc' : 'desc',
-    ]);
+    ]) + ['direction' => $direction === 'desc' ? 'asc' : 'desc']);
 
     $demoInvoices = [
         ['client' => 'Ukázkový klient a.s.', 'number' => '2026-0002', 'issue_date' => '12.02.2026', 'total' => 1000, 'status' => 'draft', 'url' => null],
@@ -73,10 +68,7 @@
                 @if ($statusFilter !== 'all')
                     <input type="hidden" name="status" value="{{ $statusFilter }}">
                 @endif
-                @if ($sortedByIssueDate)
-                    <input type="hidden" name="sort" value="issue_date">
-                    <input type="hidden" name="direction" value="{{ $direction }}">
-                @endif
+                <input type="hidden" name="direction" value="{{ $direction }}">
             </div>
         </form>
 
@@ -98,21 +90,10 @@
 
         {{-- Sorting --}}
         <div class="flex items-center justify-end border-t border-gray-100 px-4 py-2">
-            <a
-                href="{{ $issueDateSortUrl }}"
-                @class([
-                    'inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium',
-                    'border-brand bg-brand-light text-brand' => $sortedByIssueDate,
-                    'border-gray-200 bg-white text-gray-600' => ! $sortedByIssueDate,
-                ])
-            >
+            <a href="{{ $issueDateSortUrl }}" class="inline-flex items-center gap-1 rounded-full border border-brand bg-brand-light px-3 py-1.5 text-xs font-medium text-brand">
                 Datum vystavení
-                @if ($sortedByIssueDate)
-                    <span aria-hidden="true">{{ $direction === 'asc' ? '↑' : '↓' }}</span>
-                    <span class="sr-only">{{ $direction === 'asc' ? 'seřazeno vzestupně' : 'seřazeno sestupně' }}</span>
-                @else
-                    <span class="text-gray-300" aria-hidden="true">↕</span>
-                @endif
+                <span aria-hidden="true">{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                <span class="sr-only">{{ $direction === 'asc' ? 'seřazeno vzestupně' : 'seřazeno sestupně' }}</span>
             </a>
         </div>
 

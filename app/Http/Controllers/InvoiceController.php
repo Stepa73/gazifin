@@ -52,18 +52,18 @@ class InvoiceController extends Controller
             $query->whereYear('issue_date', now()->year);
         }
 
-        $sort = request('sort') === 'issue_date' ? 'issue_date' : 'created_at';
+        // Výchozí řazení je vždy podle data vystavení, od nejnovější faktury.
         $direction = request('direction') === 'asc' ? 'asc' : 'desc';
 
         $invoices = $query
-            ->orderBy($sort, $direction)
+            ->orderBy('issue_date', $direction)
             ->orderBy('id', $direction)
             ->paginate(15)
             ->withQueryString();
 
         $isFiltered = $search !== '' || $statusFilter !== 'all';
 
-        return view('invoices.index', compact('invoices', 'search', 'statusFilter', 'isFiltered', 'sort', 'direction'));
+        return view('invoices.index', compact('invoices', 'search', 'statusFilter', 'isFiltered', 'direction'));
     }
 
     public function create(): View
