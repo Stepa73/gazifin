@@ -7,6 +7,11 @@
     x-data="{
         loading: false,
         error: null,
+        numberPrefix: @js(old('invoice_number_prefix', $client?->invoice_number_prefix ?? '')),
+        numberSuffix: @js(old('invoice_number_suffix', $client?->invoice_number_suffix ?? '')),
+        get numberPreview() {
+            return this.numberPrefix + '{{ now()->year }}' + this.numberSuffix + '0001';
+        },
         async fetchFromAres() {
             const ico = this.$refs.icoInput.value.trim();
             this.error = null;
@@ -104,6 +109,41 @@
         <x-input-label for="dic" value="DIČ" />
         <x-text-input id="dic" name="dic" class="mt-1 block w-full" x-ref="dicInput" :value="old('dic', $client?->dic)" />
         <x-input-error :messages="$errors->get('dic')" class="mt-2" />
+    </div>
+
+    <div class="pt-2 border-t border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-900">Číslování faktur</h3>
+        <p class="mt-1 text-xs text-gray-500">Nepovinné. Vlastní řada číslování pro tohoto klienta — předpona se vloží před rok, přípona za rok.</p>
+
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <x-input-label for="invoice_number_prefix" value="Předpona před rokem" />
+                <x-text-input
+                    id="invoice_number_prefix"
+                    name="invoice_number_prefix"
+                    class="mt-1 block w-full"
+                    x-model="numberPrefix"
+                    placeholder="např. FA"
+                />
+                <x-input-error :messages="$errors->get('invoice_number_prefix')" class="mt-2" />
+            </div>
+
+            <div>
+                <x-input-label for="invoice_number_suffix" value="Přípona za rokem" />
+                <x-text-input
+                    id="invoice_number_suffix"
+                    name="invoice_number_suffix"
+                    class="mt-1 block w-full"
+                    x-model="numberSuffix"
+                    placeholder="např. -"
+                />
+                <x-input-error :messages="$errors->get('invoice_number_suffix')" class="mt-2" />
+            </div>
+        </div>
+
+        <p class="mt-2 text-xs text-gray-500">
+            Náhled první faktury: <span class="font-mono font-medium text-gray-700" x-text="numberPreview"></span>
+        </p>
     </div>
 
     <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">

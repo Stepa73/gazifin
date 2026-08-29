@@ -12,6 +12,14 @@ class StoreClientRequest extends FormRequest
         return true;
     }
 
+    public function messages(): array
+    {
+        return [
+            'invoice_number_prefix.regex' => 'Předpona může obsahovat jen písmena, číslice a znaky / . _ -',
+            'invoice_number_suffix.regex' => 'Přípona může obsahovat jen písmena, číslice a znaky / . _ -',
+        ];
+    }
+
     public function rules(): array
     {
         return [
@@ -21,6 +29,8 @@ class StoreClientRequest extends FormRequest
             'ico' => ['nullable', 'string', 'max:20'],
             'dic' => ['nullable', 'string', 'max:20'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'invoice_number_prefix' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9\/._-]+$/'],
+            'invoice_number_suffix' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9\/._-]+$/'],
         ];
     }
 }
