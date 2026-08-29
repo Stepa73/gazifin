@@ -516,7 +516,7 @@
         <div class="text-right leading-tight">
           <b class="block text-xs font-bold tabular-nums ${v!==0 ? 'text-gray-900' : 'text-gray-300'}">${monthTxt}</b>
           <small class="block text-[10px] tabular-nums text-gray-400">Σ ${fmt(cum)}</small>
-          <small class="block text-[10px] tabular-nums ${realTotal>0 ? 'text-blue-600' : 'text-gray-300'}">${realTotal>0 ? 'skut. '+fmt(real.paid[i]) : '—'}</small>
+          <small class="block text-[10px] tabular-nums ${realTotal>0 ? 'text-blue-600' : 'text-gray-300'}">${realTotal>0 ? 'fakt. '+fmt(realTotal) : '—'}</small>
         </div>
       </div>`;
     }).join('');
@@ -569,9 +569,10 @@
     const diffTxt = diff >= 0 ? '+'+fmt(diff) : fmt(diff);
 
     let rows = rowHTML(`Plán na rok ${year}`, kc(planTotal))
-             + rowHTML('Skutečně uhrazeno', kc(paid), {tone:'real'})
-             + rowHTML('Vystaveno, zatím neuhrazeno', kc(open), {tone:'real'})
-             + rowHTML('Skutečnost proti plánu', diffTxt + ' Kč', {tone:'accent'});
+             + rowHTML(`Vyfakturováno v roce ${year}`, kc(paid + open), {tone:'real'})
+             + rowHTML('z toho uhrazeno', kc(paid), {sub:true})
+             + rowHTML('čeká na úhradu', kc(open), {sub:true})
+             + rowHTML('Vyfakturováno proti plánu', diffTxt + ' Kč', {tone:'accent'});
 
     if (linked.length && Math.round(linkedPaid + linkedOpen) !== Math.round(paid + open)){
       rows += rowHTML('z toho u klientů napojených na zdroje', kc(linkedPaid + linkedOpen), {sub:true});
@@ -581,7 +582,10 @@
     }
 
     el('reality').innerHTML = `<div class="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1">
-      <div class="mb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Plán vs. skutečnost</div>${rows}</div>`;
+      <div class="mb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Plán vs. skutečnost</div>${rows}
+      <p class="pb-2 pt-2 text-[11px] leading-relaxed text-gray-400">
+        Faktura se počítá do měsíce, kdy byla vystavená. Plán oproti tomu sleduje, kdy peníze dorazí na účet, takže se po měsících posune o zpoždění platby.
+      </p></div>`;
   }
 
   function renderPausal(total, year, p){
@@ -671,8 +675,8 @@
 
     const a = actualYear(s.clientId, year);
     const real = (a.paid === 0 && a.open === 0)
-      ? `<span class="font-semibold text-gray-400">Skutečně v ${year}: nic</span><span class="block text-[11px] text-gray-400">u tohoto klienta zatím žádné faktury</span>`
-      : `<span class="font-semibold text-blue-600">Skutečně v ${year}: ${kc(a.paid)} uhrazeno${a.open>0?` · ${kc(a.open)} čeká`:''}</span><span class="block text-[11px] text-gray-400">z faktur toho klienta</span>`;
+      ? `<span class="font-semibold text-gray-400">Vyfakturováno v ${year}: nic</span><span class="block text-[11px] text-gray-400">u tohoto klienta zatím žádné faktury</span>`
+      : `<span class="font-semibold text-blue-600">Vyfakturováno v ${year}: ${kc(a.paid + a.open)}</span><span class="block text-[11px] text-gray-400">z toho ${kc(a.paid)} uhrazeno${a.open>0?` · ${kc(a.open)} čeká`:''}</span>`;
     return plan + `<span class="mt-2 block border-t border-dashed border-gray-200 pt-2 text-xs">${real}</span>`;
   }
 

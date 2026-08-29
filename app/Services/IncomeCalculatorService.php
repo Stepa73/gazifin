@@ -50,8 +50,11 @@ class IncomeCalculatorService
     /**
      * Skutečné příjmy z faktur, po měsících.
      *
-     * Kalkulačka pracuje s datem, kdy peníze dorazí na účet. U uhrazené faktury je to
-     * `paid_at`, u neuhrazené zatím jen očekávaná splatnost — proto jsou oddělené.
+     * Měsíc určuje datum vystavení — to je měsíc, za který jsi si vydělal.
+     * Splatnost by výsledek posunula, protože aplikace ji sama nastavuje na
+     * 15. den následujícího měsíce, takže by červnová faktura spadla do července.
+     *
+     * Uvnitř měsíce se odděluje uhrazené od toho, co ještě čeká na zaplacení.
      *
      * @param  array<int, int>  $years
      * @return array{byClient: array<int, array<string, array{paid: float, open: float}>>, totals: array<string, array{paid: float, open: float}>}
@@ -60,21 +63,20 @@ class IncomeCalculatorService
     {
         $invoices = Invoice::query()
             ->where('user_id', $user->id)
-            ->get(['client_id', 'due_date', 'paid_at', 'status', 'total']);
+            ->get(['client_id', 'issue_date', 'status', 'total']);
 
         $byClient = [];
         $totals = [];
 
         foreach ($invoices as $invoice) {
-            $isPaid = $invoice->status === 'paid';
-            $arrival = $isPaid ? ($invoice->paid_at ?? $invoice->due_date) : $invoice->due_date;
+            $issued = $invoice->issue_date;
 
-            if (! in_array((int) $arrival->format('Y'), $years, true)) {
+            if (! in_array((int) $issued->format('Y'), $years, true)) {
                 continue;
             }
 
-            $key = $arrival->format('Y').'-'.((int) $arrival->format('n') - 1);
-            $bucket = $isPaid ? 'paid' : 'open';
+            $key = $issued->format('Y').'-'.((int) $issued->format('n') - 1);
+            $bucket = $invoice->status === 'paid' ? 'paid' : 'open';
             $amount = (float) $invoice->total;
 
             $byClient[$invoice->client_id][$key] ??= ['paid' => 0.0, 'open' => 0.0];

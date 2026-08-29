@@ -14,14 +14,14 @@ class IncomeCalculatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function invoice(User $user, Client $client, string $due, string $status, float $total, ?string $paidAt = null): Invoice
+    private function invoice(User $user, Client $client, string $issued, string $status, float $total, ?string $due = null, ?string $paidAt = null): Invoice
     {
         return Invoice::create([
             'user_id' => $user->id,
             'client_id' => $client->id,
-            'number' => 'F'.$user->id.'-'.$client->id.'-'.substr(md5($due.$status.$total), 0, 6),
-            'issue_date' => $due,
-            'due_date' => $due,
+            'number' => 'F'.$user->id.'-'.$client->id.'-'.substr(md5($issued.$status.$total), 0, 6),
+            'issue_date' => $issued,
+            'due_date' => $due ?? $issued,
             'status' => $status,
             'paid_at' => $paidAt,
             'subtotal' => $total,
@@ -63,27 +63,44 @@ class IncomeCalculatorTest extends TestCase
         $user = User::factory()->create();
         $client = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
 
-        $this->invoice($user, $client, '2026-03-20', 'paid', 10000, '2026-03-25');
-        $this->invoice($user, $client, '2026-03-31', 'sent', 4000);
+        $this->invoice($user, $client, '2026-03-20', 'paid', 10000, '2026-04-15', '2026-03-25');
+        $this->invoice($user, $client, '2026-03-31', 'sent', 4000, '2026-04-15');
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 
-        // Uhrazená se řadí podle data úhrady, neuhrazená podle splatnosti — obojí březen.
         $this->assertSame(10000.0, $actuals['byClient'][$client->id]['2026-2']['paid']);
         $this->assertSame(4000.0, $actuals['byClient'][$client->id]['2026-2']['open']);
         $this->assertSame(10000.0, $actuals['totals']['2026-2']['paid']);
     }
 
-    public function test_paid_invoice_falls_back_to_due_date_when_payment_date_is_unknown(): void
+    public function test_an_invoice_counts_into_the_month_it_was_issued_not_when_it_is_due(): void
     {
         $user = User::factory()->create();
         $client = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
 
-        $this->invoice($user, $client, '2026-05-10', 'paid', 7000, null);
+        // Aplikace nastavuje splatnost na 15. dne následujícího měsíce, takže
+        // podle splatnosti by červnová práce spadla celá do července.
+        $this->invoice($user, $client, '2026-06-18', 'sent', 85000, '2026-07-15');
+        $this->invoice($user, $client, '2026-06-30', 'sent', 11000, '2026-07-15');
+        $this->invoice($user, $client, '2026-07-06', 'sent', 20000, '2026-08-15');
+
+        $totals = app(IncomeCalculatorService::class)->actuals($user, [2026])['totals'];
+
+        $this->assertSame(96000.0, $totals['2026-5']['open']);
+        $this->assertSame(20000.0, $totals['2026-6']['open']);
+    }
+
+    public function test_a_paid_invoice_stays_in_its_issue_month_even_when_paid_much_later(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
+
+        $this->invoice($user, $client, '2026-05-10', 'paid', 7000, '2026-06-15', '2026-08-01');
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 
         $this->assertSame(7000.0, $actuals['byClient'][$client->id]['2026-4']['paid']);
+        $this->assertArrayNotHasKey('2026-7', $actuals['totals']);
     }
 
     public function test_actuals_ignore_other_users(): void
@@ -93,8 +110,8 @@ class IncomeCalculatorTest extends TestCase
         $mine = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
         $theirs = Client::create(['user_id' => $stranger->id, 'name' => 'Cizí']);
 
-        $this->invoice($user, $mine, '2026-02-15', 'paid', 1000, '2026-02-15');
-        $this->invoice($stranger, $theirs, '2026-02-15', 'paid', 999000, '2026-02-15');
+        $this->invoice($user, $mine, '2026-02-15', 'paid', 1000, null, '2026-02-15');
+        $this->invoice($stranger, $theirs, '2026-02-15', 'paid', 999000, null, '2026-02-15');
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 

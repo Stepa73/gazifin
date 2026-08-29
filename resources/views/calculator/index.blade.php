@@ -87,7 +87,7 @@
                 <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500">
                     <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400"></i>plán ten měsíc</span>
                     <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500"></i>kumulativně (strop 2 mil.)</span>
-                    <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-blue-500"></i>skutečnost z faktur</span>
+                    <span class="inline-flex items-center gap-1.5"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-blue-500"></i>vyfakturováno ten měsíc</span>
                 </div>
                 <div id="reality"></div>
                 <div id="cross"></div>
@@ -165,7 +165,7 @@
             <div class="mt-3 space-y-3 text-xs leading-relaxed text-gray-500">
                 <p><span class="font-medium text-gray-700">Beta:</span> výpočet i napojení na fakturaci se ještě usazují. Ber čísla jako orientační, není to daňové poradenství.</p>
                 <p><span class="font-medium text-gray-700">Ukládání:</span> plán se ukládá k tvému účtu na server, takže ho najdeš i na jiném zařízení. Faktury se z něj nijak nemění — kalkulačka z nich jen čte.</p>
-                <p><span class="font-medium text-gray-700">Skutečnost vs. plán:</span> „skutečnost“ jsou tvoje faktury. Uhrazená faktura se řadí podle data úhrady, neuhrazená zatím podle splatnosti. U faktur označených jako zaplacené ještě před zavedením data úhrady se použije splatnost.</p>
+                <p><span class="font-medium text-gray-700">Skutečnost vs. plán:</span> „skutečnost“ jsou tvoje faktury a počítají se do měsíce, kdy byly <em>vystavené</em> — to je měsíc, za který sis vydělal. Podle splatnosti to nejde: aplikace ji sama nastavuje na 15. den následujícího měsíce, takže by červnová faktura spadla do července. Plán oproti tomu sleduje, kdy peníze dorazí na účet, takže se po měsících liší o zpoždění platby.</p>
                 <p><span class="font-medium text-gray-700">Kdy se příjem počítá:</span> rozhoduje datum, kdy peníze fakticky dorazí na účet — ne datum faktury. Každý zdroj má proto zpoždění platby a den v měsíci, kdy platba chodí.</p>
                 <p><span class="font-medium text-gray-700">Od / Do:</span> „Do“ je nepovinné — když ho necháš prázdné, spolupráce běží dál i do dalších let a prognóza s ní počítá celý rok.</p>
                 <p><span class="font-medium text-gray-700">Prognóza {{ $years['next'] }}:</span> předpokládá stejnou sazbu, harmonogram i dovolenou jako v {{ $years['base'] }}. Jednorázové faktury se neopakují. Oficiální sazby paušální daně pro {{ $years['next'] }} zatím nejsou zveřejněné, použity jsou částky {{ $years['base'] }} jako odhad.</p>

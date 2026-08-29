@@ -20,7 +20,12 @@
         <div class="px-4 py-4 lg:px-0 lg:py-0">
             {{-- Stav faktury --}}
             <div class="mb-4 flex items-center justify-between lg:justify-start lg:gap-3">
-                <span class="text-sm text-gray-500">Stav faktury</span>
+                <span class="text-sm text-gray-500">
+                    Stav faktury
+                    @if ($invoice->status === 'paid' && $invoice->paid_at)
+                        <span class="block text-xs text-gray-400 lg:inline lg:ml-1">· uhrazeno {{ $invoice->paid_at->format('d.m.Y') }}</span>
+                    @endif
+                </span>
                 <span @class([
                     'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
                     'bg-orange-50 text-orange-600' => $invoice->status === 'draft',
