@@ -73,7 +73,9 @@ class InvoiceController extends Controller
 
         $user = auth()->user();
         $issueDate = now()->format('Y-m-d');
-        $suggestedNumber = $this->invoiceService->generateNumber($user);
+        $clientNumbers = $this->invoiceService->generateNumbersForClients($user, $clients);
+        $selectedClientId = old('client_id');
+        $suggestedNumber = $clientNumbers[$selectedClientId] ?? $this->invoiceService->generateNumber($user);
         $invoiceNumber = old('number', $suggestedNumber);
         $variableSymbol = old('variable_symbol', $this->invoiceService->defaultVariableSymbol($invoiceNumber));
         $defaultDueDate = old('due_date', $this->invoiceService->defaultDueDate($issueDate));
@@ -84,6 +86,7 @@ class InvoiceController extends Controller
             'products',
             'invoiceNumber',
             'suggestedNumber',
+            'clientNumbers',
             'variableSymbol',
             'issueDate',
             'defaultDueDate',
@@ -154,9 +157,10 @@ class InvoiceController extends Controller
             ->get();
 
         $isVatPayer = $invoice->is_vat_payer;
-        $suggestedNumber = $this->invoiceService->generateNumber(auth()->user());
+        $clientNumbers = $this->invoiceService->generateNumbersForClients(auth()->user(), $clients);
+        $suggestedNumber = $clientNumbers[$invoice->client_id] ?? $this->invoiceService->generateNumber(auth()->user());
 
-        return view('invoices.edit', compact('invoice', 'clients', 'products', 'isVatPayer', 'suggestedNumber'));
+        return view('invoices.edit', compact('invoice', 'clients', 'products', 'isVatPayer', 'suggestedNumber', 'clientNumbers'));
     }
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): RedirectResponse

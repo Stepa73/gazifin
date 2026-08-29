@@ -10,6 +10,8 @@
         'quantity' => $item->quantity,
         'unit_price' => $item->unit_price,
     ])->toArray() ?? [['description' => '', 'quantity' => 1, 'unit_price' => 0]]);
+    $clientNumbers = $clientNumbers ?? [];
+    $selectedClientId = old('client_id', $invoice?->client_id);
     $productOptions = ($products ?? collect())->map(fn ($product) => [
         'id' => $product->id,
         'name' => $product->name,
@@ -26,7 +28,10 @@
           {{ json_encode($invoiceNumber) }},
           {{ json_encode($variableSymbol) }},
           {{ json_encode($suggestedNumber) }},
-          {{ json_encode($productOptions) }}
+          {{ json_encode($productOptions) }},
+          {{ json_encode((object) $clientNumbers) }},
+          {{ json_encode((string) $selectedClientId) }},
+          {{ $invoice ? 'false' : 'true' }}
       )">
     @csrf
     @if ($method !== 'POST')
@@ -43,7 +48,7 @@
                     type="text"
                     required
                     x-model="invoiceNumber"
-                    @input="syncVariableSymbol()"
+                    @input="numberEdited = true; syncVariableSymbol()"
                     class="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                 >
                 @if (! $invoice)
@@ -56,7 +61,7 @@
                     </button>
                 @endif
             </div>
-            <p class="mt-1 text-xs text-gray-500">Číslo si můžete upravit. Tlačítko „Navrhnout další“ použije nejvyšší existující číslo + 1.</p>
+            <p class="mt-1 text-xs text-gray-500">Číslo si můžete upravit. Tlačítko „Navrhnout další“ použije nejvyšší existující číslo + 1 v řadě vybraného klienta.</p>
             <x-input-error :messages="$errors->get('number')" class="mt-2" />
         </div>
 
@@ -75,7 +80,7 @@
 
         <div class="md:col-span-2">
             <x-input-label for="client_id" value="Klient" />
-            <select id="client_id" name="client_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+            <select id="client_id" name="client_id" x-model="clientId" @change="applyClientNumber()" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                 <option value="">Vyberte klienta</option>
                 @foreach ($clients as $client)
                     <option value="{{ $client->id }}" @selected(old('client_id', $invoice?->client_id) == $client->id)>{{ $client->name }}</option>
@@ -192,7 +197,7 @@
 </form>
 
 <script>
-    function invoiceForm(initialItems, isVatPayer, initialIssueDate, initialDueDate, initialNumber, initialVariableSymbol, suggestedNumber, products) {
+    function invoiceForm(initialItems, isVatPayer, initialIssueDate, initialDueDate, initialNumber, initialVariableSymbol, suggestedNumber, products, clientNumbers, initialClientId, isNew) {
         return {
             items: initialItems.length ? initialItems : [{ description: '', quantity: 1, unit_price: 0 }],
             isVatPayer: isVatPayer,
@@ -202,6 +207,10 @@
             variableSymbol: initialVariableSymbol,
             suggestedNumber: suggestedNumber,
             products: products || [],
+            clientNumbers: clientNumbers || {},
+            clientId: initialClientId || '',
+            isNew: isNew,
+            numberEdited: false,
             addItem() {
                 this.items.push({ description: '', quantity: 1, unit_price: 0 });
             },
@@ -263,8 +272,21 @@
                     this.variableSymbol = digits;
                 }
             },
+            numberForClient() {
+                return this.clientNumbers[this.clientId] || this.suggestedNumber;
+            },
             applySuggestedNumber() {
-                this.invoiceNumber = this.suggestedNumber;
+                this.invoiceNumber = this.numberForClient();
+                this.numberEdited = false;
+                this.syncVariableSymbol();
+            },
+            applyClientNumber() {
+                // Ručně přepsané číslo výběrem klienta nepřepisujeme.
+                if (! this.isNew || this.numberEdited) {
+                    return;
+                }
+
+                this.invoiceNumber = this.numberForClient();
                 this.syncVariableSymbol();
             },
         };
