@@ -62,3 +62,23 @@ export function plural(count, one, few, many) {
 
     return many;
 }
+
+/**
+ * Horní hranice osy zaokrouhlená nahoru na čitelné číslo.
+ *
+ * Bez toho popisky osy ukazují náhodné hodnoty, které v datech nikde nejsou —
+ * „187 433“ místo „200 tis.“ Krok se volí podle řádu, aby čtvrtiny osy vyšly
+ * taky na kulato.
+ */
+export function niceCeiling(value) {
+    const number = Math.max(1, value);
+    const magnitude = 10 ** Math.floor(Math.log10(number));
+
+    for (const step of [1, 1.2, 1.6, 2, 2.4, 4, 6, 8, 10]) {
+        if (number <= step * magnitude) {
+            return step * magnitude;
+        }
+    }
+
+    return 10 * magnitude;
+}

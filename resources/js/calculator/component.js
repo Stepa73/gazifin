@@ -26,7 +26,7 @@ import {
     sourceMonthAmount,
 } from './engine.js';
 import { M, bandCeilings, remainingLevy, resolveTax, rulesFor } from './tax.js';
-import { formatCompact, formatExact, formatHours, formatMoney, formatMoneyExact, formatNumber, formatPercent, formatSigned, plural } from './format.js';
+import { formatCompact, formatExact, formatHours, formatMoney, formatMoneyExact, formatNumber, formatPercent, formatSigned, niceCeiling, plural } from './format.js';
 
 const todayISO = () => toISO(new Date());
 
@@ -511,10 +511,10 @@ export default function incomeCalculator(boot) {
         /**
          * Sloupcový graf měsíců.
          *
-         * Plán i skutečnost se měří stejnou osou a stojí vedle sebe, ne přes
-         * sebe — tři různě škálované pruhy v jednom řádku nešlo porovnat.
-         * Kumulativní součet jde zvlášť jako čára, protože má úplně jiný rozsah
-         * než jednotlivé měsíce.
+         * Plán a skutečnost stojí vedle sebe na jedné ose — tři různě
+         * škálované pruhy přes sebe nešlo porovnat. Kumulativní součet má
+         * úplně jiný rozsah, takže jde jako čára s vlastní osou vpravo;
+         * bez popsané osy se z ní dalo přečíst jen „roste“.
          */
         chart() {
             if (!this.results) return null;
@@ -522,11 +522,22 @@ export default function incomeCalculator(boot) {
             const plan = this.results.cash.byMonth;
             const actual = this.results.actual.cash;
             const received = this.results.actual.received;
+            const expected = this.results.actual.expected;
             const hasActual = this.results.actual.totals.cash > 0;
-            const peak = Math.max(1, ...plan, ...actual);
             const cumulative = this.results.cash.cumulative;
-            const cumulativePeak = Math.max(2 * M, ...cumulative);
-            const nowMonth = new Date().getFullYear() === this.year ? new Date().getMonth() : -1;
+
+            // Osy se zaokrouhlují nahoru na hezké číslo, aby popisky nebyly
+            // náhodné hodnoty typu „187 433“.
+            const peak = niceCeiling(Math.max(1, ...plan, ...actual));
+            const cumulativePeak = niceCeiling(Math.max(2 * M, ...cumulative));
+
+            const now = new Date();
+            const nowYear = now.getFullYear();
+            // Celý budoucí rok je odhad, celý minulý je hotový. Jen u toho
+            // probíhajícího se rok dělí na obojí.
+            const current = this.year === nowYear;
+            const future = this.year > nowYear;
+            const nowMonth = current ? now.getMonth() : -1;
 
             const bars = plan.map((value, index) => ({
                 index,
@@ -534,38 +545,48 @@ export default function incomeCalculator(boot) {
                 plan: value,
                 actual: actual[index],
                 received: received[index],
-                expected: this.results.actual.expected[index],
+                expected: expected[index],
+                diff: actual[index] - value,
                 planPct: (value / peak) * 100,
                 actualPct: (actual[index] / peak) * 100,
                 receivedShare: actual[index] > 0 ? (received[index] / actual[index]) * 100 : 0,
                 cumulative: cumulative[index],
-                isNow: index === nowMonth,
+                cumulativePct: (cumulative[index] / cumulativePeak) * 100,
+                isNow: current && index === nowMonth,
+                // Měsíc, který ještě nenastal, je odhad — v grafu se to pozná.
+                ahead: future || (current && index > nowMonth),
             }));
 
-            // Čára jde přes vlastní SVG s viewBoxem 0 0 1200 100 a
-            // preserveAspectRatio="none", takže se roztáhne přesně na šířku mřížky.
-            const linePoints = cumulative
-                .map((value, index) => {
-                    const x = ((index + 0.5) / 12) * 1200;
-                    const y = 100 - (value / cumulativePeak) * 100;
-
-                    return `${x.toFixed(1)},${y.toFixed(2)}`;
-                })
-                .join(' ');
+            // Čára jede přes vlastní SVG s viewBoxem 0 0 1200 100 a
+            // preserveAspectRatio="none", takže sedí přesně na mřížku sloupců.
+            const x = (index) => ((index + 0.5) / 12) * 1200;
+            const y = (value) => 100 - (value / cumulativePeak) * 100;
+            const linePoints = cumulative.map((value, index) => `${x(index).toFixed(1)},${y(value).toFixed(2)}`).join(' ');
 
             return {
                 bars,
                 hasActual,
                 peak,
                 cumulativePeak,
+                nowMonth,
                 linePoints,
+                // Plocha pod čarou ji odliší od dalšího datového řadu.
+                areaPoints: `${x(0).toFixed(1)},100 ${linePoints} ${x(11).toFixed(1)},100`,
+                nowX: current ? ((nowMonth + 1) / 12) * 100 : null,
+                allAhead: future,
                 ceilingPct: (2 * M / cumulativePeak) * 100,
                 ceilingVisible: cumulativePeak >= 2 * M,
                 gridlines: [1, 0.75, 0.5, 0.25].map((fraction) => ({
                     pct: fraction * 100,
-                    label: formatCompact(peak * fraction),
+                    left: formatCompact(peak * fraction),
+                    right: formatCompact(cumulativePeak * fraction),
                 })),
             };
+        },
+
+        /** Měsíc, ke kterému se vztahuje ukazatel pod grafem. */
+        activeMonth(hover) {
+            return hover === null || hover === undefined ? this.calendarMonth : hover;
         },
 
         /** Postup k hranici dvou milionů — vodorovný pruh nad pásmy. */
