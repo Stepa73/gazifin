@@ -26,7 +26,7 @@ import {
     sourceMonthAmount,
 } from './engine.js';
 import { M, bandCeilings, remainingLevy, resolveTax, rulesFor } from './tax.js';
-import { formatCompact, formatHours, formatMoney, formatNumber, formatPercent, formatSigned, plural } from './format.js';
+import { formatCompact, formatExact, formatHours, formatMoney, formatMoneyExact, formatNumber, formatPercent, formatSigned, plural } from './format.js';
 
 const todayISO = () => toISO(new Date());
 
@@ -653,6 +653,8 @@ export default function incomeCalculator(boot) {
         // ================= formátování pro šablonu =================
 
         money: formatMoney,
+        exact: formatExact,
+        moneyExact: formatMoneyExact,
         plural,
 
         /** „1 den dovolené“, ne „1 dnů dovolené“. */

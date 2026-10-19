@@ -20,7 +20,7 @@
                         <div class="text-sm font-semibold text-gray-900">
                             <span x-text="monthName(calendarMonth)"></span> <span class="tabular-nums" x-text="year"></span>
                         </div>
-                        <div class="text-xs tabular-nums text-gray-500" x-text="money(monthBucket()?.amount ?? 0)"></div>
+                        <div class="text-xs tabular-nums text-gray-500" x-text="moneyExact(monthBucket()?.amount ?? 0)"></div>
                     </div>
 
                     <button type="button" @click="shiftMonth(1)" :disabled="calendarMonth === 11"
@@ -106,8 +106,9 @@
 
                                     <div class="text-left">
                                         <template x-if="cell.amount > 0">
-                                            <span class="block text-[10px] font-semibold leading-tight tabular-nums text-emerald-700"
-                                                  x-text="compact(cell.amount)"></span>
+                                            {{-- Přesná částka se na mobilu do buňky vejde jen natěsno, proto nezalomená a drobným písmem. --}}
+                                            <span class="block whitespace-nowrap text-[9px] font-semibold leading-tight tabular-nums text-emerald-700 sm:text-[10px]"
+                                                  x-text="exact(cell.amount)"></span>
                                         </template>
                                         <template x-if="cell.amount === 0 && cell.holiday">
                                             <span class="block truncate text-[8px] leading-tight text-rose-500" :title="cell.holiday" x-text="cell.holiday"></span>
@@ -133,7 +134,7 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xl font-bold tabular-nums text-gray-900" x-text="money(selectedDayData().amount)"></div>
+                                <div class="text-xl font-bold tabular-nums text-gray-900" x-text="moneyExact(selectedDayData().amount)"></div>
                                 <button type="button" @click="selectedDay = null" class="text-[11px] text-gray-400 underline">zavřít</button>
                             </div>
                         </div>
@@ -146,14 +147,14 @@
                                             <span class="truncate text-xs font-medium text-gray-700" x-text="entry.name"></span>
                                             <span class="whitespace-nowrap text-xs font-semibold tabular-nums"
                                                   :class="entry.amount > 0 ? 'text-emerald-700' : 'text-gray-400'"
-                                                  x-text="entry.amount > 0 ? money(entry.amount) : dayStatusLabel(entry.status)"></span>
+                                                  x-text="entry.amount > 0 ? moneyExact(entry.amount) : dayStatusLabel(entry.status)"></span>
                                         </div>
                                         <template x-if="entry.amount > 0 && selectedDayPayment(entry)">
                                             <div class="text-[11px] text-gray-500">
                                                 připíše se
                                                 <span class="font-medium" x-text="dateLabel(selectedDayPayment(entry).iso) + ' ' + selectedDayPayment(entry).year"></span>
                                                 spolu se zbytkem měsíce
-                                                <span x-text="'(' + money(selectedDayPayment(entry).amount) + ')'"></span>
+                                                <span x-text="'(' + moneyExact(selectedDayPayment(entry).amount) + ')'"></span>
                                             </div>
                                         </template>
                                         <template x-if="entry.prorated">

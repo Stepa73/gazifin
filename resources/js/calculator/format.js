@@ -7,6 +7,28 @@ export const formatNumber = (value) =>
 
 export const formatMoney = (value) => `${formatNumber(value)}${nbsp}Kč`;
 
+/**
+ * Částka bez zaokrouhlení.
+ *
+ * V kalendáři se ukazuje, co přesně ten den vyděláš, takže se nesmí nic
+ * schovat — ani do „tis.“, ani zaokrouhlením na koruny. Haléře se vypíšou
+ * jen tehdy, když tam opravdu jsou: u rozpuštěného měsíčního paušálu den
+ * obvykle na celé koruny nevyjde.
+ */
+export function formatExact(value) {
+    const number = value || 0;
+    const hasFraction = Math.abs(number - Math.round(number)) > 0.004;
+
+    return number
+        .toLocaleString('cs-CZ', {
+            minimumFractionDigits: hasFraction ? 2 : 0,
+            maximumFractionDigits: hasFraction ? 2 : 0,
+        })
+        .replace(/\s/g, nbsp);
+}
+
+export const formatMoneyExact = (value) => `${formatExact(value)}${nbsp}Kč`;
+
 export const formatSigned = (value) =>
     `${value > 0 ? '+' : ''}${formatNumber(value)}${nbsp}Kč`;
 
