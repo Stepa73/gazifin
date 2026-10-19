@@ -33,40 +33,23 @@
                         </div>
                     </button>
 
-                    <div class="flex shrink-0 items-center gap-1">
-                        <button type="button" @click="moveSource(source.id, -1)" :disabled="index === 0"
-                                class="flex h-8 w-8 items-center justify-center rounded-md text-gray-300 transition disabled:opacity-30 hover:bg-gray-50 hover:text-gray-600"
-                                aria-label="Posunout nahoru">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 15-6-6-6 6"/></svg>
-                        </button>
-                        <button type="button" @click="moveSource(source.id, 1)" :disabled="index === sources.length - 1"
-                                class="flex h-8 w-8 items-center justify-center rounded-md text-gray-300 transition disabled:opacity-30 hover:bg-gray-50 hover:text-gray-600"
-                                aria-label="Posunout dolů">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
-                        </button>
-                        <button type="button" @click="openSource = openSource === source.id ? null : source.id"
-                                class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-50"
-                                :aria-expanded="openSource === source.id" aria-label="Rozbalit">
-                            <svg class="h-5 w-5 transition-transform" :class="openSource === source.id ? 'rotate-180' : ''"
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
-                        </button>
-                    </div>
+                    {{-- Ve sbalené hlavičce zůstává jen rozbalení. Přesouvání a mazání
+                         je uvnitř, kde se na ně dá na mobilu pořádně trefit. --}}
+                    <button type="button" @click="openSource = openSource === source.id ? null : source.id"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-50"
+                            :aria-expanded="openSource === source.id" aria-label="Rozbalit zdroj">
+                        <svg class="h-5 w-5 transition-transform" :class="openSource === source.id ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
+                    </button>
                 </div>
 
                 {{-- Detail --}}
                 <div x-show="openSource === source.id" x-collapse>
                     <div class="space-y-3 border-t border-gray-100 p-3">
-                        <div class="flex items-center gap-2">
+                        <div>
+                            <span class="{{ $label }}">Název zdroje</span>
                             <input type="text" x-model="source.name" @input="touch()" aria-label="Název zdroje"
-                                   class="block w-full flex-1 rounded-md border-gray-300 text-sm font-medium shadow-sm focus:border-brand focus:ring-brand">
-                            <button type="button" @click="duplicateSource(source.id)"
-                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-gray-300 text-gray-400 transition hover:text-gray-700"
-                                    aria-label="Duplikovat zdroj">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2M6 20h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z"/></svg>
-                            </button>
-                            <button type="button" @click="removeSource(source.id)"
-                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-gray-300 text-lg leading-none text-gray-400 transition hover:border-red-300 hover:text-red-600"
-                                    aria-label="Smazat zdroj">×</button>
+                                   class="{{ $input }} font-medium">
                         </div>
 
                         <div>
@@ -192,6 +175,27 @@
                                 <span class="font-medium text-gray-700"
                                       x-text="days(source.vacationDays.filter(d => d.startsWith(year + '-')).length) + ' v roce ' + year"></span>.
                             </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+                            <button type="button" @click="moveSource(source.id, -1)" :disabled="index === 0"
+                                    class="flex h-10 min-w-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-gray-200 px-3 text-xs font-medium text-gray-600 transition disabled:opacity-30 hover:bg-gray-50 sm:flex-none">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 15-6-6-6 6"/></svg>
+                                Nahoru
+                            </button>
+                            <button type="button" @click="moveSource(source.id, 1)" :disabled="index === sources.length - 1"
+                                    class="flex h-10 min-w-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-gray-200 px-3 text-xs font-medium text-gray-600 transition disabled:opacity-30 hover:bg-gray-50 sm:flex-none">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
+                                Dolů
+                            </button>
+                            <button type="button" @click="duplicateSource(source.id)"
+                                    class="flex h-10 flex-1 items-center justify-center rounded-md border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:bg-gray-50 sm:flex-none">
+                                Duplikovat
+                            </button>
+                            <button type="button" @click="removeSource(source.id)"
+                                    class="flex h-10 flex-1 items-center justify-center rounded-md border border-gray-200 px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 sm:flex-none">
+                                Smazat
+                            </button>
                         </div>
 
                         {{-- Skutečnost u napojeného klienta --}}

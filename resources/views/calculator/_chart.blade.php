@@ -90,7 +90,7 @@
                         {{-- Měsíce --}}
                         <div class="mt-1 grid grid-cols-12">
                             <template x-for="bar in c.bars" :key="'m' + bar.index">
-                                <button type="button" class="py-1 text-center text-[10px] uppercase transition"
+                                <button type="button" class="overflow-hidden py-1 text-center text-[9px] uppercase transition sm:text-[10px]"
                                         :class="activeMonth(hover) === bar.index
                                             ? 'font-bold text-brand'
                                             : (bar.isNow ? 'font-semibold text-gray-700' : 'text-gray-400 hover:text-gray-700')"
@@ -120,7 +120,8 @@
                               x-text="c.bars[activeMonth(hover)].ahead ? 'ještě nenastalo' : (c.bars[activeMonth(hover)].isNow ? 'probíhá' : 'proběhlo')"></span>
                     </div>
 
-                    <div class="mt-2 grid gap-2" :class="c.hasActual ? 'grid-cols-3' : 'grid-cols-2'">
+                    {{-- Tři sloupce se na úzkém displeji rozpadnou, proto se kumulativ přesune pod ně. --}}
+                    <div class="mt-2 grid gap-x-3 gap-y-2 grid-cols-2" :class="c.hasActual ? 'sm:grid-cols-3' : 'sm:grid-cols-2'">
                         <div>
                             <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-gray-400">
                                 <i class="inline-block h-2 w-2 rounded-sm bg-amber-400"></i>plán
@@ -140,13 +141,15 @@
                             </div>
                         </template>
 
-                        <div>
+                        <div class="col-span-2 border-t border-gray-200 pt-2 sm:col-span-1 sm:border-0 sm:pt-0">
                             <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-gray-400">
                                 <i class="inline-block h-0.5 w-3 rounded bg-emerald-600"></i>od ledna
                             </div>
-                            <div class="text-sm font-semibold tabular-nums text-emerald-700" x-text="money(c.bars[activeMonth(hover)].cumulative)"></div>
-                            <div class="text-[10px] tabular-nums text-gray-400"
-                                 x-text="percent(c.bars[activeMonth(hover)].cumulative / 2000000, 0) + ' stropu'"></div>
+                            <div class="flex items-baseline gap-2 sm:block">
+                                <span class="text-sm font-semibold tabular-nums text-emerald-700" x-text="money(c.bars[activeMonth(hover)].cumulative)"></span>
+                                <span class="text-[10px] tabular-nums text-gray-400"
+                                      x-text="percent(c.bars[activeMonth(hover)].cumulative / 2000000, 0) + ' stropu'"></span>
+                            </div>
                         </div>
                     </div>
 

@@ -110,8 +110,11 @@
                                             <span class="block whitespace-nowrap text-[9px] font-semibold leading-tight tabular-nums text-emerald-700 sm:text-[10px]"
                                                   x-text="exact(cell.amount)"></span>
                                         </template>
+                                        {{-- Na mobilu se z názvu svátku stejně stane „Vznik …“, takže tam stačí
+                                             růžové pozadí a celé jméno v rozboru dne. --}}
                                         <template x-if="cell.amount === 0 && cell.holiday">
-                                            <span class="block truncate text-[8px] leading-tight text-rose-500" :title="cell.holiday" x-text="cell.holiday"></span>
+                                            <span class="hidden truncate text-[8px] leading-tight text-rose-500 sm:block"
+                                                  :title="cell.holiday" x-text="cell.holiday"></span>
                                         </template>
                                     </div>
                                 </div>

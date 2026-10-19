@@ -3,39 +3,47 @@
     <x-panel>
         <template x-if="results">
             <div>
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                    <div>
+                {{-- Na mobilu průměr nesmí vypadat jako druhé hlavní číslo, proto jde pod ně na jeden řádek. --}}
+                <div class="sm:flex sm:items-end sm:justify-between sm:gap-3">
+                    <div class="min-w-0">
                         <div class="text-xs font-bold uppercase tracking-wide text-gray-500">
                             Čistého za rok <span x-text="year"></span>
                             <span x-show="isForecast" class="font-normal normal-case text-amber-600">· prognóza</span>
                         </div>
-                        <div class="mt-1 text-4xl font-bold tabular-nums"
+                        <div class="mt-0.5 text-3xl font-bold tabular-nums sm:mt-1 sm:text-4xl"
                              :class="results.tax.net < 0 ? 'text-red-600' : 'text-emerald-600'"
                              x-text="money(results.tax.net)"></div>
                     </div>
-                    <div class="text-right">
+                    {{-- Na mobilu jeden řádek pod hlavním číslem, na desktopu sloupeček vpravo.
+                         Jedno společné značkování by na jednom z nich vždycky vypadalo rozlámaně. --}}
+                    <div class="mt-0.5 text-xs text-gray-500 sm:hidden">
+                        v průměru
+                        <span class="font-semibold tabular-nums text-gray-900" x-text="money(results.tax.net / 12)"></span>
+                        měsíčně
+                    </div>
+                    <div class="hidden sm:block sm:text-right">
                         <div class="text-xs text-gray-400">v průměru měsíčně</div>
                         <div class="text-lg font-semibold tabular-nums text-gray-900" x-text="money(results.tax.net / 12)"></div>
                     </div>
                 </div>
 
-                <div class="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4">
+                <div class="mt-4 grid grid-cols-3 gap-x-3 border-t border-gray-100 pt-4">
                     <div>
                         <div class="text-[11px] uppercase tracking-wide text-gray-400">Na účet</div>
-                        <div class="mt-0.5 text-sm font-semibold tabular-nums text-gray-900" x-text="money(results.cash.total)"></div>
+                        <div class="mt-0.5 text-[13px] font-semibold tabular-nums text-gray-900 sm:text-sm" x-text="money(results.cash.total)"></div>
                     </div>
                     <div>
                         <div class="text-[11px] uppercase tracking-wide text-gray-400">Odvody</div>
-                        <div class="mt-0.5 text-sm font-semibold tabular-nums text-amber-600" x-text="'−' + money(results.tax.totalDue)"></div>
+                        <div class="mt-0.5 text-[13px] font-semibold tabular-nums text-amber-600 sm:text-sm" x-text="'−' + money(results.tax.totalDue)"></div>
                     </div>
                     <div>
                         <div class="text-[11px] uppercase tracking-wide text-gray-400">Odvedeš</div>
-                        <div class="mt-0.5 text-sm font-semibold tabular-nums text-gray-900"
+                        <div class="mt-0.5 text-[13px] font-semibold tabular-nums text-gray-900 sm:text-sm"
                              x-text="results.cash.total > 0 ? percent(results.tax.effectiveRate) : '—'"></div>
                     </div>
                 </div>
 
-                <div class="mt-3 flex flex-wrap items-center gap-2">
+                <div class="mt-3 flex flex-wrap items-center gap-1.5">
                     <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold"
                           :class="results.tax.mode === 'pausal' ? 'bg-brand-light text-brand' : 'bg-gray-100 text-gray-600'"
                           x-text="results.tax.mode === 'pausal'
@@ -59,11 +67,11 @@
     <x-panel>
         <template x-if="results">
             <div>
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                    <div class="text-3xl font-bold tabular-nums"
+                <div class="sm:flex sm:items-end sm:justify-between sm:gap-3">
+                    <div class="text-2xl font-bold tabular-nums sm:text-3xl"
                          :class="results.remaining.net < 0 ? 'text-red-600' : 'text-gray-900'"
                          x-text="money(results.remaining.net)"></div>
-                    <div class="text-right text-xs text-gray-400">
+                    <div class="text-xs text-gray-400 sm:text-right">
                         čistého, po odvodech ze zbytku roku
                     </div>
                 </div>
