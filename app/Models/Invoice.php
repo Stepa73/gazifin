@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'issue_date',
     'due_date',
     'status',
+    'paid_at',
     'notes',
     'subtotal',
     'vat_rate',
@@ -30,6 +31,7 @@ class Invoice extends Model
         return [
             'issue_date' => 'date',
             'due_date' => 'date',
+            'paid_at' => 'date',
             'subtotal' => 'decimal:2',
             'vat_rate' => 'decimal:2',
             'vat_amount' => 'decimal:2',

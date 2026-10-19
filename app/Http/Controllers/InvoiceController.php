@@ -221,7 +221,8 @@ class InvoiceController extends Controller
     {
         $this->authorize('update', $invoice);
 
-        $invoice->update(['status' => 'paid']);
+        // Datum úhrady drží kalkulačka příjmů — bez něj by šlo jen odhadovat ze splatnosti.
+        $invoice->update(['status' => 'paid', 'paid_at' => now()->toDateString()]);
 
         return back()->with('success', 'Faktura byla označena jako zaplacená.');
     }
@@ -230,7 +231,7 @@ class InvoiceController extends Controller
     {
         $this->authorize('update', $invoice);
 
-        $invoice->update(['status' => 'sent']);
+        $invoice->update(['status' => 'sent', 'paid_at' => null]);
 
         return back()->with('success', 'Úhrada faktury byla zrušena.');
     }

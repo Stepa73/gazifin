@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            // Kalkulačka se ukládá přes fetch, takže potřebuje chyby v JSONu.
+            // Bez toho by validační chyba skončila jako HTML redirect a prohlížeč
+            // by ho následoval — uložení by vypadalo úspěšně, i když neproběhlo.
+            fn (Request $request) => $request->is('api/*') || $request->routeIs('calculator.update'),
         );
     })->create();

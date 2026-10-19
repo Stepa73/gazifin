@@ -14,6 +14,16 @@
     </x-slot>
 
     <x-page class="space-y-4 px-4 py-4 lg:space-y-6 lg:py-12">
+        <a href="{{ route('calculator.index') }}" class="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-4 active:bg-gray-50 lg:rounded-lg lg:border-0 lg:px-8 lg:shadow">
+            <span class="flex items-center gap-2 text-base font-semibold text-gray-900">
+                Kalkulačka příjmů
+                <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">Beta</span>
+            </span>
+            <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 6 6 6-6 6"/>
+            </svg>
+        </a>
+
         @foreach ($sections as $section)
             <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white lg:rounded-lg lg:border-0 lg:shadow">
                 <div class="border-b border-gray-100 px-4 py-3 lg:px-8 lg:pt-6">

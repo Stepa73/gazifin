@@ -34,12 +34,21 @@
         <section class="px-4 pt-5 lg:px-0 lg:pt-0">
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="text-xs font-bold tracking-wide text-gray-500">PŘEHLED</h2>
-                <a href="{{ route('reports') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>
-                    </svg>
-                    Reporty
-                </a>
+                <div class="flex items-center gap-4">
+                    <a href="{{ route('calculator.index') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6M9 11h.01M12 11h.01M15 11h.01M9 15h.01M12 15h.01M15 15h.01"/>
+                        </svg>
+                        Kalkulačka
+                    </a>
+                    <a href="{{ route('reports') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>
+                        </svg>
+                        Reporty
+                    </a>
+                </div>
             </div>
 
             <div class="space-y-3 lg:grid lg:grid-cols-4 lg:gap-4 lg:space-y-0">
