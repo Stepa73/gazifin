@@ -16,6 +16,11 @@
             Zadává se klikáním v kalendáři, ne jako počet dnů za měsíc. Díky tomu se do dalšího roku nepřenáší — rok {{ $years['next'] }} si naplánuješ zvlášť.
         </p>
         <p>
+            <span class="font-medium text-gray-700">Jednorázová faktura</span>
+            dorazí na účet celá v jeden den, ale v kalendáři se rozpočítá na pracovní dny svého měsíce — jinak by měsíc,
+            za který sis ji vydělal, vypadal prázdný. Do plateb i do odvodů vstupuje pořád jako jedna částka ve svém datu.
+        </p>
+        <p>
             <span class="font-medium text-gray-700">Příjem se počítá podle dne, kdy peníze dorazí na účet</span>, ne podle data faktury.
             Každý zdroj má proto zpoždění platby a den v měsíci, kdy klient platí. Práce z prosince se tak obvykle započte až do dalšího roku.
         </p>

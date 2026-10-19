@@ -86,6 +86,74 @@ describe('měsíční paušál', () => {
     });
 });
 
+describe('jednorázová faktura', () => {
+    const oneOff = (overrides = {}) =>
+        source({ mode: 'invoice', date: '2026-09-09', amount: 50000, ...overrides });
+
+    it('se rozpočítá do měsíce, ve kterém se fakturuje', () => {
+        expect(Math.round(sourceMonthAmount(oneOff(), 2026, 8))).toBe(50000);
+    });
+
+    it('do ostatních měsíců nespadne nic', () => {
+        const s = oneOff();
+
+        expect(sourceMonthAmount(s, 2026, 7)).toBe(0);
+        expect(sourceMonthAmount(s, 2026, 9)).toBe(0);
+        expect(sourceMonthAmount(s, 2027, 8)).toBe(0);
+    });
+
+    it('rozděluje se jen na pracovní dny, ne na víkendy a svátky', () => {
+        const { days } = dailyBreakdown([oneOff({ date: '2026-09-09' })], 2026);
+
+        // 28. 9. je Den české státnosti, 5. 9. sobota.
+        expect(days.get('2026-09-28').amount).toBe(0);
+        expect(days.get('2026-09-05').amount).toBe(0);
+        expect(days.get('2026-09-09').amount).toBeGreaterThan(0);
+    });
+
+    it('každý pracovní den měsíce dostane stejný díl', () => {
+        const { months } = dailyBreakdown([oneOff()], 2026);
+        const working = months[8].days.filter((d) => d.amount > 0);
+
+        expect(working).toHaveLength(21);
+        expect(working[0].amount).toBeCloseTo(50000 / 21, 6);
+    });
+
+    it('dovolená ji nesnižuje, jen ji rozloží na zbylé dny', () => {
+        const s = oneOff({ vacationDays: ['2026-09-10', '2026-09-11'] });
+
+        expect(Math.round(sourceMonthAmount(s, 2026, 8))).toBe(50000);
+    });
+
+    it('platba zůstává jedna ve svém datu, nerozpadá se', () => {
+        const payments = collectPayments([oneOff()], [2026]);
+
+        expect(payments).toHaveLength(1);
+        expect(payments[0]).toMatchObject({ iso: '2026-09-09', amount: 50000 });
+    });
+
+    it('bez data se nikam nerozpočítá', () => {
+        const s = oneOff({ date: '' });
+
+        expect(sourceMonthAmount(s, 2026, 8)).toBe(0);
+        expect(collectPayments([s], [2026])).toHaveLength(0);
+    });
+
+    it('nevymýšlí si odpracované hodiny', () => {
+        const { months, days } = dailyBreakdown([oneOff()], 2026);
+
+        expect(days.get('2026-09-09').amount).toBeGreaterThan(0);
+        expect(days.get('2026-09-09').hours).toBe(0);
+        expect(months[8].hours).toBe(0);
+    });
+
+    it('den se označí jako jednorázovka, ať se nepopíše jako paušál', () => {
+        const { days } = dailyBreakdown([oneOff()], 2026);
+
+        expect(days.get('2026-09-09').sources[0]).toMatchObject({ oneOff: true, prorated: true });
+    });
+});
+
 describe('dovolená', () => {
     it('ubere přesně dny, které si zadal — ne nějaký počet za měsíc', () => {
         const plain = sourceMonthAmount(source(), 2026, 6);

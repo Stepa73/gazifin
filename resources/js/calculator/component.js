@@ -474,11 +474,15 @@ export default function incomeCalculator(boot) {
         selectedDayPayment(entry) {
             const source = this.sources.find((s) => s.id === entry.id);
 
-            if (!source || source.mode === 'invoice') return null;
+            if (!source) return null;
 
-            const payment = this.results.payments.find(
-                (p) => p.sourceId === entry.id && p.workYear === this.year && p.workMonth === this.calendarMonth,
-            );
+            // Jednorázovka dorazí celá ve svém datu, pravidelná práce až se
+            // zbytkem měsíce po zpoždění platby.
+            const payment = this.results.payments.find((p) => (
+                source.mode === 'invoice'
+                    ? p.sourceId === entry.id
+                    : p.sourceId === entry.id && p.workYear === this.year && p.workMonth === this.calendarMonth
+            ));
 
             return payment ?? null;
         },

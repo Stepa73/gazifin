@@ -119,16 +119,22 @@
                         </div>
 
                         {{-- Jednorázová faktura --}}
-                        <div x-show="source.mode === 'invoice'" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div>
-                                <span class="{{ $label }}">Datum připsání na účet</span>
-                                <input type="date" x-model="source.date" @input="touch()"
-                                       min="{{ $years['prev'] }}-01-01" max="{{ $years['next'] }}-12-31" class="{{ $input }}">
+                        <div x-show="source.mode === 'invoice'" class="space-y-3">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                    <span class="{{ $label }}">Datum připsání na účet</span>
+                                    <input type="date" x-model="source.date" @input="touch()"
+                                           min="{{ $years['prev'] }}-01-01" max="{{ $years['next'] }}-12-31" class="{{ $input }}">
+                                </div>
+                                <div>
+                                    <span class="{{ $label }}">Částka</span>
+                                    <input type="number" x-model.number="source.amount" @input="touch()" min="0" step="1000" class="{{ $input }}">
+                                </div>
                             </div>
-                            <div>
-                                <span class="{{ $label }}">Částka</span>
-                                <input type="number" x-model.number="source.amount" @input="touch()" min="0" step="1000" class="{{ $input }}">
-                            </div>
+                            <p class="rounded-xl bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-500">
+                                Na účet dorazí celá částka v jeden den. V kalendáři se ale rozpočítá na pracovní dny toho měsíce,
+                                aby bylo vidět, za co sis ji vydělal.
+                            </p>
                         </div>
 
                         {{-- Rozsah, týden a platba --}}

@@ -153,12 +153,15 @@
                                             <div class="text-[11px] text-gray-500">
                                                 připíše se
                                                 <span class="font-medium" x-text="dateLabel(selectedDayPayment(entry).iso) + ' ' + selectedDayPayment(entry).year"></span>
-                                                spolu se zbytkem měsíce
+                                                <span x-text="entry.oneOff ? 'celá' : 'spolu se zbytkem měsíce'"></span>
                                                 <span x-text="'(' + moneyExact(selectedDayPayment(entry).amount) + ')'"></span>
                                             </div>
                                         </template>
                                         <template x-if="entry.prorated">
-                                            <div class="text-[11px] text-gray-400">podíl z měsíčního paušálu</div>
+                                            <div class="text-[11px] text-gray-400"
+                                                 x-text="entry.oneOff
+                                                     ? 'podíl z jednorázové faktury, rozpočítané do měsíce'
+                                                     : 'podíl z měsíčního paušálu'"></div>
                                         </template>
                                     </div>
                                 </template>

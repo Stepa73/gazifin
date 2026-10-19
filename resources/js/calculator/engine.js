@@ -64,10 +64,13 @@ export function dayForSource(input, date) {
     const iso = toISO(date);
 
     if (source.mode === 'invoice') {
-        return { status: 'none', amount: 0, hours: 0 };
-    }
-
-    if (!withinRange(source, iso)) {
+        // Jednorázovka se rozpouští do měsíce, ve kterém se fakturuje. Dřív
+        // v kalendáři nebyla vůbec vidět — měsíc, za který jsi ji vydělal,
+        // vypadal prázdný, i když šlo o největší částku roku.
+        if (!source.date || source.date.slice(0, 7) !== iso.slice(0, 7)) {
+            return { status: 'none', amount: 0, hours: 0 };
+        }
+    } else if (!withinRange(source, iso)) {
         return { status: 'outside', amount: 0, hours: 0 };
     }
 
@@ -85,16 +88,21 @@ export function dayForSource(input, date) {
         return { status: 'off', amount: 0, hours: 0 };
     }
 
-    if (source.mode === 'fixed') {
-        // Paušál za měsíc se rozpouští do dnů, kdy se pro klienta pracuje —
-        // takhle sedí jak měsíční součet, tak detail dne.
+    if (source.mode === 'fixed' || source.mode === 'invoice') {
+        // Měsíční paušál i jednorázovka se rozpouštějí do dnů, kdy se pro
+        // klienta pracuje — takhle sedí měsíční součet i detail dne, a
+        // dovolená částku nesnižuje, jen ji rozloží na zbylé dny.
         const billable = billableDaysInMonth(source, date.getFullYear(), date.getMonth());
+        const total = source.mode === 'fixed' ? (+source.fixed || 0) : (+source.amount || 0);
 
         return {
             status: 'work',
-            amount: billable > 0 ? (+source.fixed || 0) / billable : 0,
-            hours: +source.hoursPerDay || 0,
+            amount: billable > 0 ? total / billable : 0,
+            // U jednorázovky se hodiny nikde nezadávají, takže by se tu jen
+            // vymyslel osmihodinový den a nafoukl měsíční součet hodin.
+            hours: source.mode === 'invoice' ? 0 : (+source.hoursPerDay || 0),
             prorated: true,
+            oneOff: source.mode === 'invoice',
         };
     }
 
@@ -185,6 +193,7 @@ export function dailyBreakdown(rawSources, year) {
                         amount: result.amount,
                         hours: result.hours,
                         prorated: !!result.prorated,
+                        oneOff: !!result.oneOff,
                     });
                 }
             }
