@@ -20,6 +20,7 @@ class UpdateIncomePlanRequest extends FormRequest
             'regime' => ['required', Rule::in(['auto', 'pausal', 'klasik'])],
             'sideActivity' => ['required', 'boolean'],
             'activity' => ['required', Rule::in(['40', '60', '80'])],
+            'pausalMonths' => ['required', 'integer', 'between:0,12'],
             'expMode' => ['required', Rule::in(['pausal', 'real'])],
             'expReal' => ['required', 'numeric', 'min:0', 'max:999999999'],
             'carryAmount' => ['required', 'numeric', 'min:-999999999', 'max:999999999'],
@@ -32,6 +33,8 @@ class UpdateIncomePlanRequest extends FormRequest
             'sources.*.rate' => ['required', 'numeric', 'min:0', 'max:9999999'],
             'sources.*.unit' => ['required', Rule::in(['h', 'md'])],
             'sources.*.hoursPerDay' => ['required', 'numeric', 'min:0.5', 'max:24'],
+            'sources.*.workDays' => ['required', 'array', 'min:1', 'max:7'],
+            'sources.*.workDays.*' => ['required', 'integer', 'between:1,7'],
             'sources.*.lag' => ['required', 'integer', 'between:0,3'],
             'sources.*.payDay' => ['required', 'integer', 'between:1,31'],
             'sources.*.from' => ['nullable', 'date'],
@@ -39,8 +42,8 @@ class UpdateIncomePlanRequest extends FormRequest
             'sources.*.fixed' => ['required', 'numeric', 'min:0', 'max:999999999'],
             'sources.*.date' => ['nullable', 'date'],
             'sources.*.amount' => ['required', 'numeric', 'min:0', 'max:999999999'],
-            'sources.*.vacation' => ['required', 'array', 'size:12'],
-            'sources.*.vacation.*' => ['required', 'integer', 'between:0,31'],
+            'sources.*.vacationDays' => ['present', 'array', 'max:400'],
+            'sources.*.vacationDays.*' => ['required', 'date_format:Y-m-d'],
         ];
     }
 

@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 
 class IncomeCalculatorService
 {
-    /** Rok, pro který platí zadané sazby paušální daně. */
+    /** Rok, který kalkulačka bere jako „letošek“. */
     public const BASE_YEAR = 2026;
 
     public const PREV_YEAR = self::BASE_YEAR - 1;
@@ -48,42 +48,58 @@ class IncomeCalculatorService
     }
 
     /**
-     * Skutečné příjmy z faktur, po měsících.
+     * Skutečnost z faktur, ve dvou pohledech.
      *
-     * Měsíc určuje datum vystavení — to je měsíc, za který jsi si vydělal.
-     * Splatnost by výsledek posunula, protože aplikace ji sama nastavuje na
-     * 15. den následujícího měsíce, takže by červnová faktura spadla do července.
+     * Plán sleduje, kdy peníze dorazí na účet. Porovnávat ho s fakturami podle
+     * data vystavení znamená srovnávat dvě různé věci — proto se skutečnost
+     * počítá primárně taky podle peněz:
      *
-     * Uvnitř měsíce se odděluje uhrazené od toho, co ještě čeká na zaplacení.
+     *   received — uhrazené faktury v měsíci, kdy byly uhrazené,
+     *   expected — zatím neuhrazené, v měsíci, kdy mají být splatné,
+     *   issued   — všechno podle data vystavení, tedy za který měsíc sis vydělal.
+     *
+     * První dva dohromady dávají cash flow srovnatelný s plánem, třetí ukazuje
+     * odvedenou práci. Rozdíl mezi nimi je přesně to zpoždění, které kalkulačka
+     * modeluje zpožděním platby.
      *
      * @param  array<int, int>  $years
-     * @return array{byClient: array<int, array<string, array{paid: float, open: float}>>, totals: array<string, array{paid: float, open: float}>}
+     * @return array{byClient: array<int, array<string, array<string, float>>>, totals: array<string, array<string, float>>}
      */
     public function actuals(User $user, array $years): array
     {
         $invoices = Invoice::query()
             ->where('user_id', $user->id)
-            ->get(['client_id', 'issue_date', 'status', 'total']);
+            ->get(['client_id', 'issue_date', 'due_date', 'paid_at', 'status', 'total']);
 
         $byClient = [];
         $totals = [];
 
-        foreach ($invoices as $invoice) {
-            $issued = $invoice->issue_date;
-
-            if (! in_array((int) $issued->format('Y'), $years, true)) {
-                continue;
+        $add = function (?int $clientId, ?Carbon $date, string $bucket, float $amount) use ($years, &$byClient, &$totals): void {
+            if (! $date || ! in_array((int) $date->format('Y'), $years, true)) {
+                return;
             }
 
-            $key = $issued->format('Y').'-'.((int) $issued->format('n') - 1);
-            $bucket = $invoice->status === 'paid' ? 'paid' : 'open';
+            $key = $date->format('Y').'-'.((int) $date->format('n') - 1);
+            $empty = ['received' => 0.0, 'expected' => 0.0, 'issued' => 0.0];
+
+            $byClient[$clientId][$key] ??= $empty;
+            $byClient[$clientId][$key][$bucket] += $amount;
+
+            $totals[$key] ??= $empty;
+            $totals[$key][$bucket] += $amount;
+        };
+
+        foreach ($invoices as $invoice) {
             $amount = (float) $invoice->total;
 
-            $byClient[$invoice->client_id][$key] ??= ['paid' => 0.0, 'open' => 0.0];
-            $byClient[$invoice->client_id][$key][$bucket] += $amount;
+            $add($invoice->client_id, $invoice->issue_date, 'issued', $amount);
 
-            $totals[$key] ??= ['paid' => 0.0, 'open' => 0.0];
-            $totals[$key][$bucket] += $amount;
+            if ($invoice->status === 'paid') {
+                // Zaplacenou fakturu bez data úhrady neumíme umístit přesněji než na splatnost.
+                $add($invoice->client_id, $invoice->paid_at ?? $invoice->due_date, 'received', $amount);
+            } else {
+                $add($invoice->client_id, $invoice->due_date, 'expected', $amount);
+            }
         }
 
         return ['byClient' => $byClient, 'totals' => $totals];
@@ -102,6 +118,7 @@ class IncomeCalculatorService
             'regime' => $state['regime'],
             'side_activity' => $state['sideActivity'],
             'activity' => $state['activity'],
+            'pausal_months' => $state['pausalMonths'],
             'exp_mode' => $state['expMode'],
             'exp_real' => $state['expReal'],
             'carry_amount' => $state['carryAmount'],
@@ -133,6 +150,7 @@ class IncomeCalculatorService
             'rate' => $attributes['rate'] ?? 1200,
             'unit' => $attributes['unit'] ?? 'h',
             'hours_per_day' => $attributes['hoursPerDay'] ?? 8,
+            'work_days' => $this->workDays($attributes['workDays'] ?? null),
             'payment_lag' => $attributes['lag'] ?? 2,
             'pay_day' => $attributes['payDay'] ?? 15,
             // Prázdné datum je platná volba (zdroj bez konce), takže výchozí hodnota
@@ -146,7 +164,7 @@ class IncomeCalculatorService
                 ? $this->date($attributes['date'])
                 : $this->date(self::BASE_YEAR.'-06-15'),
             'invoice_amount' => $attributes['amount'] ?? 0,
-            'vacation' => $this->vacation($attributes['vacation'] ?? null),
+            'vacation_days' => $this->vacationDays($attributes['vacationDays'] ?? null),
             'position' => $position,
         ]);
     }
@@ -157,17 +175,43 @@ class IncomeCalculatorService
     }
 
     /**
+     * Dny v týdnu, kdy se pro zdroj pracuje: 1 = pondělí … 7 = neděle.
+     *
      * @param  array<int, mixed>|null  $value
      * @return array<int, int>
      */
-    private function vacation(?array $value): array
+    private function workDays(?array $value): array
     {
-        $days = array_fill(0, 12, 0);
-
-        foreach (range(0, 11) as $month) {
-            $days[$month] = max(0, min(31, (int) ($value[$month] ?? 0)));
+        if ($value === null) {
+            return [1, 2, 3, 4, 5];
         }
 
-        return $days;
+        $days = collect($value)
+            ->map(fn ($day) => (int) $day)
+            ->filter(fn (int $day) => $day >= 1 && $day <= 7)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return $days ?: [1, 2, 3, 4, 5];
+    }
+
+    /**
+     * Konkrétní dny dovolené. Dřív to byl počet dnů za měsíc, takže se tatáž
+     * dovolená „vybírala“ znovu v každém roce a v kalendáři nebyla k nalezení.
+     *
+     * @param  array<int, mixed>|null  $value
+     * @return array<int, string>
+     */
+    private function vacationDays(?array $value): array
+    {
+        return collect($value ?? [])
+            ->filter(fn ($day) => is_string($day) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) === 1)
+            ->unique()
+            ->sort()
+            ->values()
+            ->take(400)
+            ->all();
     }
 }

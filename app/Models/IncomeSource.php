@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'rate',
     'unit',
     'hours_per_day',
+    'work_days',
     'payment_lag',
     'pay_day',
     'starts_on',
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'fixed_amount',
     'invoice_date',
     'invoice_amount',
-    'vacation',
+    'vacation_days',
     'position',
 ])]
 class IncomeSource extends Model
@@ -36,7 +37,8 @@ class IncomeSource extends Model
             'hours_per_day' => 'decimal:1',
             'fixed_amount' => 'decimal:2',
             'invoice_amount' => 'decimal:2',
-            'vacation' => 'array',
+            'vacation_days' => 'array',
+            'work_days' => 'array',
         ];
     }
 
@@ -72,7 +74,8 @@ class IncomeSource extends Model
             'fixed' => (float) $this->fixed_amount,
             'date' => $this->invoice_date?->format('Y-m-d') ?? '',
             'amount' => (float) $this->invoice_amount,
-            'vacation' => $this->vacation ?? array_fill(0, 12, 0),
+            'workDays' => $this->work_days ?: [1, 2, 3, 4, 5],
+            'vacationDays' => $this->vacation_days ?? [],
         ];
     }
 }

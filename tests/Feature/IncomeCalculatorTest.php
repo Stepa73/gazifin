@@ -68,9 +68,11 @@ class IncomeCalculatorTest extends TestCase
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 
-        $this->assertSame(10000.0, $actuals['byClient'][$client->id]['2026-2']['paid']);
-        $this->assertSame(4000.0, $actuals['byClient'][$client->id]['2026-2']['open']);
-        $this->assertSame(10000.0, $actuals['totals']['2026-2']['paid']);
+        // Vystavené v březnu, uhrazené v březnu, takže obojí sedí do 2026-2.
+        $this->assertSame(14000.0, $actuals['byClient'][$client->id]['2026-2']['issued']);
+        $this->assertSame(10000.0, $actuals['byClient'][$client->id]['2026-2']['received']);
+        // Neuhrazená faktura se čeká ke splatnosti, tedy až v dubnu.
+        $this->assertSame(4000.0, $actuals['totals']['2026-3']['expected']);
     }
 
     public function test_an_invoice_counts_into_the_month_it_was_issued_not_when_it_is_due(): void
@@ -86,11 +88,11 @@ class IncomeCalculatorTest extends TestCase
 
         $totals = app(IncomeCalculatorService::class)->actuals($user, [2026])['totals'];
 
-        $this->assertSame(96000.0, $totals['2026-5']['open']);
-        $this->assertSame(20000.0, $totals['2026-6']['open']);
+        $this->assertSame(96000.0, $totals['2026-5']['issued']);
+        $this->assertSame(20000.0, $totals['2026-6']['issued']);
     }
 
-    public function test_a_paid_invoice_stays_in_its_issue_month_even_when_paid_much_later(): void
+    public function test_a_paid_invoice_is_earned_in_its_issue_month_but_received_when_it_was_paid(): void
     {
         $user = User::factory()->create();
         $client = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
@@ -99,8 +101,10 @@ class IncomeCalculatorTest extends TestCase
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 
-        $this->assertSame(7000.0, $actuals['byClient'][$client->id]['2026-4']['paid']);
-        $this->assertArrayNotHasKey('2026-7', $actuals['totals']);
+        // Vydělal sis za květen, ale peníze přišly až v srpnu — oba pohledy se liší.
+        $this->assertSame(7000.0, $actuals['byClient'][$client->id]['2026-4']['issued']);
+        $this->assertSame(0.0, $actuals['byClient'][$client->id]['2026-4']['received']);
+        $this->assertSame(7000.0, $actuals['totals']['2026-7']['received']);
     }
 
     public function test_actuals_ignore_other_users(): void
@@ -115,7 +119,7 @@ class IncomeCalculatorTest extends TestCase
 
         $actuals = app(IncomeCalculatorService::class)->actuals($user, [2026]);
 
-        $this->assertSame(1000.0, $actuals['totals']['2026-1']['paid']);
+        $this->assertSame(1000.0, $actuals['totals']['2026-1']['received']);
     }
 
     public function test_marking_an_invoice_paid_records_the_payment_date(): void
@@ -144,6 +148,7 @@ class IncomeCalculatorTest extends TestCase
             'expReal' => 120000,
             'carryAmount' => 5000,
             'carryMonth' => 2,
+            'pausalMonths' => 12,
             'sources' => [[
                 'clientId' => null,
                 'name' => 'Uložený zdroj',
@@ -158,7 +163,8 @@ class IncomeCalculatorTest extends TestCase
                 'fixed' => 60000,
                 'date' => null,
                 'amount' => 0,
-                'vacation' => array_fill(0, 12, 0),
+                'workDays' => [1, 2, 3, 4, 5],
+                'vacationDays' => [],
             ]],
         ], $overrides);
     }
@@ -185,6 +191,7 @@ class IncomeCalculatorTest extends TestCase
         $this->assertSame('2026-02-01', $source->starts_on->format('Y-m-d'));
         $this->assertNull($source->ends_on);
         $this->assertSame('60000.00', $source->fixed_amount);
+        $this->assertSame([1, 2, 3, 4, 5], $source->work_days);
     }
 
     public function test_saving_replaces_previous_sources(): void
@@ -284,11 +291,15 @@ class IncomeCalculatorTest extends TestCase
         $client = Client::create(['user_id' => $user->id, 'name' => 'Alfa']);
         $this->invoice($user, $client, '2026-04-15', 'paid', 33000, '2026-04-15');
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->get(route('calculator.index'))
             ->assertOk()
             ->assertSee('Beta')
-            ->assertSee('Alfa')
-            ->assertSee('"2026-3"', false);
+            ->assertSee('Alfa');
+
+        // Kalkulačka dostane skutečnost v obou pohledech: vystaveno i přijato v dubnu.
+        $actuals = $response->viewData('actuals');
+        $this->assertSame(33000.0, $actuals['totals']['2026-3']['issued']);
+        $this->assertSame(33000.0, $actuals['totals']['2026-3']['received']);
     }
 }

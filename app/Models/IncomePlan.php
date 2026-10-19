@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'regime',
     'side_activity',
     'activity',
+    'pausal_months',
     'exp_mode',
     'exp_real',
     'carry_amount',

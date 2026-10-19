@@ -38,6 +38,7 @@ class IncomeCalculatorController extends Controller
                 'regime' => $plan->regime,
                 'sideActivity' => $plan->side_activity,
                 'activity' => $plan->activity,
+                'pausalMonths' => (int) $plan->pausal_months,
                 'expMode' => $plan->exp_mode,
                 'expReal' => (float) $plan->exp_real,
                 'carryAmount' => (float) $plan->carry_amount,
